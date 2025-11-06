@@ -5,6 +5,10 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  env: {
+    PUBLIC_PROJET_URL: process.env.PUBLIC_PROJET_URL,
+  },
+};
 
 export default withBundleAnalyzer(nextConfig);
