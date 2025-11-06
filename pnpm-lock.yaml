@@ -20,6 +20,9 @@ importers:
       '@codemirror/lang-markdown':
         specifier: ^6.2.5
         version: 6.3.4
+      '@codemirror/language':
+        specifier: ^6.11.3
+        version: 6.11.3
       '@codemirror/language-data':
         specifier: ^6.5.1
         version: 6.5.1
@@ -38,6 +41,9 @@ importers:
       '@dnd-kit/sortable':
         specifier: ^8.0.0
         version: 8.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@dnd-kit/utilities':
+        specifier: ^3.2.2
+        version: 3.2.2(react@18.3.1)
       '@hookform/resolvers':
         specifier: ^3.4.2
         version: 3.10.0(react-hook-form@7.62.0(react@18.3.1))
@@ -194,6 +200,9 @@ importers:
       octokit:
         specifier: ^4.0.2
         version: 4.1.4
+      oslo:
+        specifier: ^1.2.1
+        version: 1.2.1
       postgres:
         specifier: ^3.4.7
         version: 3.4.7
@@ -3679,6 +3688,10 @@ packages:
 
   oslo@1.2.0:
     resolution: {integrity: sha512-OoFX6rDsNcOQVAD2gQD/z03u4vEjWZLzJtwkmgfRF+KpQUXwdgEXErD7zNhyowmHwHefP+PM9Pw13pgpHMRlzw==}
+    deprecated: Package is no longer supported. Please see https://oslojs.dev for the successor project.
+
+  oslo@1.2.1:
+    resolution: {integrity: sha512-HfIhB5ruTdQv0XX2XlncWQiJ5SIHZ7NHZhVyHth0CSZ/xzge00etRyYy/3wp/Dsu+PkxMC+6+B2lS/GcKoewkA==}
     deprecated: Package is no longer supported. Please see https://oslojs.dev for the successor project.
 
   own-keys@1.0.1:
@@ -7997,6 +8010,11 @@ snapshots:
   orderedmap@2.1.1: {}
 
   oslo@1.2.0:
+    dependencies:
+      '@node-rs/argon2': 1.7.0
+      '@node-rs/bcrypt': 1.9.0
+
+  oslo@1.2.1:
     dependencies:
       '@node-rs/argon2': 1.7.0
       '@node-rs/bcrypt': 1.9.0
