@@ -1,54 +1,68 @@
-import { z, ZodIssueCode } from "zod";
-import { ViewComponent } from "./view-component";
-import { EditComponent } from "./edit-component";
-import { Field } from "@/types/field";
+import { ZodIssueCode, z } from "zod";
 import { swapPrefix } from "@/lib/githubImage";
 import { getSchemaByName } from "@/lib/schema";
-import { getFileExtension, extensionCategories } from "@/lib/utils/file";
+import { extensionCategories, getFileExtension } from "@/lib/utils/file";
+import type { Field } from "@/types/field";
+import { EditComponent } from "./edit-component";
+import { ViewComponent } from "./view-component";
 
 // TODO: sanitize/normalize values on read (e.g. array to string, empty/invalid values)
-const read = (value: any, field: Field, config: Record<string, any>): string | string[] | null => {
+const read = (
+  value: any,
+  field: Field,
+  config: Record<string, any>
+): string | string[] | null => {
   if (!value) return null;
   if (Array.isArray(value) && !value.length) return null;
-  
-  const mediaConfig = (config?.object?.media?.length && field.options?.media !== false)
-    ? field.options?.media && typeof field.options.media === 'string'
-      ? getSchemaByName(config.object, field.options.media, "media")
-      : config.object.media[0]
-    : undefined;
+
+  const mediaConfig =
+    config?.object?.media?.length && field.options?.media !== false
+      ? field.options?.media && typeof field.options.media === "string"
+        ? getSchemaByName(config.object, field.options.media, "media")
+        : config.object.media[0]
+      : undefined;
 
   if (!mediaConfig) return value;
 
   if (Array.isArray(value)) {
-    return value.map(v => read(v, field, config)) as string[];
+    return value.map((v) => read(v, field, config)) as string[];
   }
 
   return swapPrefix(value, mediaConfig.output, mediaConfig.input, true);
 };
 
-const write = (value: any, field: Field, config: Record<string, any>): string | string[] | null => {
+const write = (
+  value: any,
+  field: Field,
+  config: Record<string, any>
+): string | string[] | null => {
   if (!value) return null;
   if (Array.isArray(value) && !value.length) return null;
 
-  const mediaConfig = (config?.object?.media?.length && field.options?.media !== false)
-    ? field.options?.media && typeof field.options.media === 'string'
-      ? getSchemaByName(config.object, field.options.media, "media")
-      : config.object.media[0]
-    : undefined;
+  const mediaConfig =
+    config?.object?.media?.length && field.options?.media !== false
+      ? field.options?.media && typeof field.options.media === "string"
+        ? getSchemaByName(config.object, field.options.media, "media")
+        : config.object.media[0]
+      : undefined;
 
   if (!mediaConfig) return value;
 
   if (Array.isArray(value)) {
-    return value.map(v => write(v, field, config)) as string[];
+    return value.map((v) => write(v, field, config)) as string[];
   }
   return swapPrefix(value, mediaConfig.input, mediaConfig.output);
 };
 
-const getAllowedExtensions = (field: Field, mediaConfig: any): string[] | undefined => {
-  const baseExtensions = [...(extensionCategories['image'] || [])];
+const getAllowedExtensions = (
+  field: Field,
+  mediaConfig: any
+): string[] | undefined => {
+  const baseExtensions = [...(extensionCategories["image"] || [])];
 
   if (!mediaConfig) return baseExtensions;
-  if (!field.options?.extensions && !field.options?.categories) return mediaConfig?.extensions || baseExtensions;
+  if (!(field.options?.extensions || field.options?.categories))
+    return mediaConfig?.extensions || baseExtensions;
 
   let extensions = baseExtensions;
 
@@ -62,19 +76,27 @@ const getAllowedExtensions = (field: Field, mediaConfig: any): string[] | undefi
     extensions = [...mediaConfig.extensions];
   }
 
-  if (extensions.length > 0 && mediaConfig?.extensions && Array.isArray(mediaConfig.extensions)) {
-    extensions = extensions.filter(ext => mediaConfig.extensions.includes(ext));
+  if (
+    extensions.length > 0 &&
+    mediaConfig?.extensions &&
+    Array.isArray(mediaConfig.extensions)
+  ) {
+    extensions = extensions.filter((ext) =>
+      mediaConfig.extensions.includes(ext)
+    );
   }
 
   return extensions;
 };
 
 const schema = (field: Field, configObject?: Record<string, any>) => {
-  const mediaConfig = configObject && (field.options?.media === false
-    ? undefined
-    : field.options?.media && typeof field.options.media === 'string'
-      ? getSchemaByName(configObject, field.options.media, "media")
-      : configObject.media?.[0]);
+  const mediaConfig =
+    configObject &&
+    (field.options?.media === false
+      ? undefined
+      : field.options?.media && typeof field.options.media === "string"
+        ? getSchemaByName(configObject, field.options.media, "media")
+        : configObject.media?.[0]);
   const mediaInputPath = mediaConfig?.input;
   const allowedExtensions = getAllowedExtensions(field, mediaConfig);
   let zodSchema: z.ZodTypeAny;
@@ -92,7 +114,9 @@ const schema = (field: Field, configObject?: Record<string, any>) => {
     if (isMultiple) {
       isEmpty = data === null || data === undefined || data.length === 0;
       if (Array.isArray(data) && data.length > 0) {
-          hasEmptyElementInArray = data.some(s => typeof s === 'string' && s === "");
+        hasEmptyElementInArray = data.some(
+          (s) => typeof s === "string" && s === ""
+        );
       }
     } else {
       isEmpty = data === null || data === undefined || data === "";
@@ -107,40 +131,45 @@ const schema = (field: Field, configObject?: Record<string, any>) => {
     }
 
     if (isMultiple && hasEmptyElementInArray) {
-        ctx.addIssue({
-            code: ZodIssueCode.custom,
-            message: "Image path cannot be empty within the list.",
-        });
-       return;
+      ctx.addIssue({
+        code: ZodIssueCode.custom,
+        message: "Image path cannot be empty within the list.",
+      });
+      return;
     }
 
     if (isEmpty) return;
 
     // Path and extension checks
     const checkPath = (path: unknown) => {
-      if (typeof path !== 'string' || path === "") return;
+      if (typeof path !== "string" || path === "") return;
 
       // Path Prefix Check
       if (mediaInputPath && !path.startsWith(mediaInputPath)) {
-        ctx.addIssue({ code: ZodIssueCode.custom, message: `Path must start with the media directory: ${mediaInputPath}` });
+        ctx.addIssue({
+          code: ZodIssueCode.custom,
+          message: `Path must start with the media directory: ${mediaInputPath}`,
+        });
       }
-      
+
       // Extension Check
       const fileExtension = getFileExtension(path);
-      if (allowedExtensions && allowedExtensions.length > 0) {
-        if (!allowedExtensions.includes(fileExtension)) {
-          ctx.addIssue({
-            code: ZodIssueCode.custom,
-            message: `Invalid file extension '.${fileExtension}'. Allowed: ${allowedExtensions.map((e: string) => `.${e}`).join(', ')}`
-          });
-        }
+      if (
+        allowedExtensions &&
+        allowedExtensions.length > 0 &&
+        !allowedExtensions.includes(fileExtension)
+      ) {
+        ctx.addIssue({
+          code: ZodIssueCode.custom,
+          message: `Invalid file extension '.${fileExtension}'. Allowed: ${allowedExtensions.map((e: string) => `.${e}`).join(", ")}`,
+        });
       }
     };
 
     // Apply checks to array elements or single string
     if (isMultiple && Array.isArray(data)) {
       data.forEach(checkPath);
-    } else if (!isMultiple && typeof data === 'string') {
+    } else if (!isMultiple && typeof data === "string") {
       checkPath(data);
     }
   });
@@ -148,10 +177,17 @@ const schema = (field: Field, configObject?: Record<string, any>) => {
   return zodSchema;
 };
 
-const defaultValue = (field: Field) => {
-  return field.options?.multiple ? [] : "";
-};
+const defaultValue = (field: Field) => (field.options?.multiple ? [] : "");
 
 const label = "Image";
 
-export { label, schema, ViewComponent, EditComponent, read, write, defaultValue, getAllowedExtensions };
+export {
+  label,
+  schema,
+  ViewComponent,
+  EditComponent,
+  read,
+  write,
+  defaultValue,
+  getAllowedExtensions,
+};

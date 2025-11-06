@@ -1,17 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useConfig } from "@/contexts/config-context";
-import { normalizePath } from "@/lib/utils/file";
-import { getSchemaByName, initializeState } from "@/lib/schema";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useConfig } from "@/contexts/config-context";
+import { getSchemaByName, initializeState } from "@/lib/schema";
+import { normalizePath } from "@/lib/utils/file";
 
 const EmptyCreate = ({
   children,
   type,
   name,
-  onCreate
+  onCreate,
 }: {
   children: React.ReactNode;
   type: "content" | "media" | "settings";
@@ -19,7 +19,7 @@ const EmptyCreate = ({
   onCreate?: (path: string) => void;
 }) => {
   const { config } = useConfig();
-  if (!config) throw new Error(`Configuration not found.`);
+  if (!config) throw new Error("Configuration not found.");
 
   const router = useRouter();
 
@@ -58,29 +58,34 @@ const EmptyCreate = ({
   } else {
     throw new Error(`Invalid type "${type}".`);
   }
-  
+
   const handleCreate = async () => {
     try {
       const createPromise = new Promise(async (resolve, reject) => {
         try {
-          const response = await fetch(`/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizePath(path))}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type,
-              name,
-              content,
-            }),
-          });
+          const response = await fetch(
+            `/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizePath(path))}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type,
+                name,
+                content,
+              }),
+            }
+          );
           if (!response.ok) {
-            throw new Error(`Failed to create ${toCreate}: ${response.status} ${response.statusText}`);
+            throw new Error(
+              `Failed to create ${toCreate}: ${response.status} ${response.statusText}`
+            );
           }
 
           const data: any = await response.json();
-          
+
           if (data.status !== "success") throw new Error(data.message);
-          
-          resolve(data)
+
+          resolve(data);
         } catch (error) {
           reject(error);
         }
@@ -102,7 +107,7 @@ const EmptyCreate = ({
   };
 
   return (
-    <Button type="button" size="sm" onClick={handleCreate}>
+    <Button onClick={handleCreate} size="sm" type="button">
       {children}
     </Button>
   );

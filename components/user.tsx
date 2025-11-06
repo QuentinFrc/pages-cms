@@ -1,10 +1,9 @@
 "use client";
 
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useUser } from "@/contexts/user-context";
-import { handleSignOut }  from "@/lib/actions/auth";
-import { getInitialsFromName } from "@/lib/utils/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,86 +15,105 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { useUser } from "@/contexts/user-context";
+import { handleSignOut } from "@/lib/actions/auth";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight } from "lucide-react";
+import { getInitialsFromName } from "@/lib/utils/avatar";
 
 export function User({
   className,
-  onClick
+  onClick,
 }: {
-  className?: string,
-  onClick?: () => void
+  className?: string;
+  onClick?: () => void;
 }) {
   const { user } = useUser();
   const { theme, setTheme } = useTheme();
-  
+
   if (!user) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className={cn(className, "rounded-full")}>
+        <Button
+          className={cn(className, "rounded-full")}
+          size="icon-sm"
+          variant="ghost"
+        >
           <Avatar className="h-8 w-8">
             <AvatarImage
+              alt={user?.githubId ? user.githubUsername : user.email}
               src={
                 user?.githubId
                   ? `https://avatars.githubusercontent.com/u/${user.githubId}`
                   : `https://unavatar.io/${user?.email}?fallback=false`
               }
-              alt={
-                user?.githubId
-                  ? user.githubUsername
-                  : user.email
-              }
             />
-            <AvatarFallback>{getInitialsFromName(user.githubName)}</AvatarFallback>
+            <AvatarFallback>
+              {getInitialsFromName(user.githubName)}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent forceMount align="start" className="max-w-[12.5rem]">
+      <DropdownMenuContent align="start" className="max-w-[12.5rem]" forceMount>
         <DropdownMenuLabel>
-          {user?.githubId
-            ? <>
-                <div className="text-sm font-medium truncate">{user.githubName ? user.githubName : user.githubUsername}</div>
-                <div className="text-xs font-normal text-muted-foreground truncate">{user.githubEmail}</div>
-              </>
-            : <div className="text-sm font-medium truncate">{user.email}</div>
-          }
+          {user?.githubId ? (
+            <>
+              <div className="truncate font-medium text-sm">
+                {user.githubName ? user.githubName : user.githubUsername}
+              </div>
+              <div className="truncate font-normal text-muted-foreground text-xs">
+                {user.githubEmail}
+              </div>
+            </>
+          ) : (
+            <div className="truncate font-medium text-sm">{user.email}</div>
+          )}
         </DropdownMenuLabel>
         {user?.githubId && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <a href={`https://github.com/${user.githubUsername}`} target="_blank" onClick={onClick}>
+              <a
+                href={`https://github.com/${user.githubUsername}`}
+                onClick={onClick}
+                target="_blank"
+              >
                 <span className="mr-4">See GitHub profile</span>
-                <ArrowUpRight className="h-3 w-3 ml-auto opacity-50" />
+                <ArrowUpRight className="ml-auto h-3 w-3 opacity-50" />
               </a>
             </DropdownMenuItem>
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="w-40 text-xs text-muted-foreground font-medium">
+        <DropdownMenuLabel className="w-40 font-medium text-muted-foreground text-xs">
           Theme
         </DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-          <DropdownMenuRadioItem value="light" onClick={onClick}>Light</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="dark" onClick={onClick}>Dark</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="system" onClick={onClick}>System</DropdownMenuRadioItem>
+        <DropdownMenuRadioGroup onValueChange={setTheme} value={theme}>
+          <DropdownMenuRadioItem onClick={onClick} value="light">
+            Light
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem onClick={onClick} value="dark">
+            Dark
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem onClick={onClick} value="system">
+            System
+          </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/settings">Settings</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={async () => { if (onClick) onClick(); await handleSignOut() }}>
+        <DropdownMenuItem
+          onClick={async () => {
+            if (onClick) onClick();
+            await handleSignOut();
+          }}
+        >
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

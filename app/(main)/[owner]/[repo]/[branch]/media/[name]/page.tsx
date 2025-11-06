@@ -1,28 +1,30 @@
-"use client";
+"use client";;
+import { use } from "react";
 
 import { useSearchParams } from "next/navigation";
+import { MediaView } from "@/components/media/media-view";
 import { useConfig } from "@/contexts/config-context";
-import { MediaView} from "@/components/media/media-view";
 
-export default function Page({
-  params
-}: {
-  params: {
-    name: string;
+export default function Page(
+  props: {
+    params: Promise<{
+      name: string;
+    }>;
   }
-}) {
+) {
+  const params = use(props.params);
   const searchParams = useSearchParams();
   const path = searchParams.get("path") || "";
 
   const { config } = useConfig();
-  if (!config) throw new Error(`Configuration not found.`);
-  
+  if (!config) throw new Error("Configuration not found.");
+
   return (
-    <div className="max-w-screen-xl mx-auto flex-1 flex flex-col h-full">
-      <header className="flex items-center mb-6">
+    <div className="mx-auto flex h-full max-w-screen-xl flex-1 flex-col">
+      <header className="mb-6 flex items-center">
         <h1 className="font-semibold text-lg md:text-2xl">Media</h1>
       </header>
-      <div className="flex flex-col relative flex-1">
+      <div className="relative flex flex-1 flex-col">
         <MediaView initialPath={path} media={params.name} />
       </div>
     </div>

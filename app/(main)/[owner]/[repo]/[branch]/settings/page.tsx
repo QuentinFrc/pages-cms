@@ -9,8 +9,6 @@ export default function Page() {
   const handleSave = async (data: Record<string, any>) => {
     setConfig(data.config);
   };
-  
-  return (
-    <EntryEditor path=".pages.yml" onSave={handleSave} title="Settings"/>
-  );
+
+  return <EntryEditor onSave={handleSave} path=".pages.yml" title="Settings" />;
 }

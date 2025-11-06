@@ -1,4 +1,4 @@
-import { User as LuciaUser } from 'lucia';
+import type { User as LuciaUser } from "lucia";
 
 export interface User extends LuciaUser {
   githubId: number;
@@ -7,4 +7,4 @@ export interface User extends LuciaUser {
   githubName: string;
   email: string;
   accounts?: any[];
-};
+}

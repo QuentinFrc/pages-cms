@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useConfig } from "@/contexts/config-context";
-import { getRelativePath, joinPathSegments, normalizePath } from "@/lib/utils/file";
-import { getSchemaByName } from "@/lib/schema";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -13,9 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { useConfig } from "@/contexts/config-context";
+import { getSchemaByName } from "@/lib/schema";
+import {
+  getRelativePath,
+  joinPathSegments,
+  normalizePath,
+} from "@/lib/utils/file";
 
 export function FileRename({
   isOpen,
@@ -24,7 +28,7 @@ export function FileRename({
   type,
   sha,
   name,
-  onRename
+  onRename,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,35 +39,51 @@ export function FileRename({
   onRename?: (path: string, newPath: string) => void;
 }) {
   const { config } = useConfig();
-  if (!config) throw new Error(`Configuration not found.`);
-  
+  if (!config) throw new Error("Configuration not found.");
+
   if (!name) throw new Error("Name is required for FileRename");
 
   const schema = getSchemaByName(config.object, name, type);
   if (!schema) throw new Error(`Schema not found for ${name}.`);
 
-  const rootPath = useMemo(() => type === "media" ? schema.input : schema.path, [type, schema.input, schema.path]);
+  const rootPath = useMemo(
+    () => (type === "media" ? schema.input : schema.path),
+    [type, schema.input, schema.path]
+  );
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
-  const relativePath = useMemo(() => getRelativePath(normalizedPath, rootPath), [normalizedPath, rootPath]);
+  const relativePath = useMemo(
+    () => getRelativePath(normalizedPath, rootPath),
+    [normalizedPath, rootPath]
+  );
 
   const [newRelativePath, setNewRelativePath] = useState(relativePath);
 
   const handleRename = async () => {
     try {
-      const newPath = joinPathSegments([rootPath, normalizePath(newRelativePath)]);
-      
+      const newPath = joinPathSegments([
+        rootPath,
+        normalizePath(newRelativePath),
+      ]);
+
       const renamePromise = new Promise(async (resolve, reject) => {
         try {
-          const response = await fetch(`/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizedPath)}/rename`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: (type === "collection" || type === "file") ? "content" : type,
-              name,
-              newPath,
-            }),
-          });
-          if (!response.ok) throw new Error(`Failed to rename file: ${response.status} ${response.statusText}`);
+          const response = await fetch(
+            `/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizedPath)}/rename`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type:
+                  type === "collection" || type === "file" ? "content" : type,
+                name,
+                newPath,
+              }),
+            }
+          );
+          if (!response.ok)
+            throw new Error(
+              `Failed to rename file: ${response.status} ${response.statusText}`
+            );
 
           const data: any = await response.json();
 
@@ -87,13 +107,13 @@ export function FileRename({
       console.error(error);
     }
   };
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>      
+    <Dialog onOpenChange={onOpenChange} open={isOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Rename file</DialogTitle>
-          <DialogDescription></DialogDescription>
+          <DialogDescription />
         </DialogHeader>
         <Input
           defaultValue={relativePath}
@@ -101,10 +121,14 @@ export function FileRename({
         />
         <DialogFooter className="max-sm:gap-y-2">
           <DialogClose asChild>
-            <Button type="button" variant="outline">Cancel</Button>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button type="submit" onClick={handleRename}>Rename</Button>
+            <Button onClick={handleRename} type="submit">
+              Rename
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

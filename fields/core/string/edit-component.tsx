@@ -3,8 +3,10 @@
 import { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 
-const EditComponent = forwardRef((props: any, ref: React.Ref<HTMLTextAreaElement>) => {
-  return <Input {...props} ref={ref} className="text-base" />;
-});
+const EditComponent = forwardRef(
+  (props: any, ref: React.Ref<HTMLTextAreaElement>) => (
+    <Input {...props} className="text-base" ref={ref} />
+  )
+);
 
 export { EditComponent };

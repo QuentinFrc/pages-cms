@@ -9,8 +9,8 @@ export default async function Layout({
     <ThemeProvider
       attribute="class"
       defaultTheme="system"
-      enableSystem
       disableTransitionOnChange
+      enableSystem
     >
       {children}
     </ThemeProvider>

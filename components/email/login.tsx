@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   Body,
   Button,
@@ -10,16 +9,16 @@ import {
   Link,
   Preview,
   Section,
-  Text,
   Tailwind,
+  Text,
 } from "@react-email/components";
 
 export const LoginEmailTemplate = ({
   url,
-  email
+  email,
 }: {
-  url: string,
-  email: string
+  url: string;
+  email: string;
 }) => {
   const baseUrl = process.env.BASE_URL
     ? process.env.BASE_URL
@@ -32,24 +31,26 @@ export const LoginEmailTemplate = ({
       <Head />
       <Preview>Sign in to Pages CMS</Preview>
       <Tailwind>
-        <Body className="bg-white my-auto mx-auto font-sans px-2 antialiased">
-          <Container className="rounded my-[40px] mx-auto p-[20px] max-w-[465px]">
+        <Body className="mx-auto my-auto bg-white px-2 font-sans antialiased">
+          <Container className="mx-auto my-[40px] max-w-[465px] rounded p-[20px]">
             <Section className="mt-[24px]">
               <Img
+                alt="Pages CMS"
+                className="mx-auto my-0"
+                height="36"
                 src={`${baseUrl}/images/email-logo.png`}
                 width="36"
-                height="36"
-                alt="Pages CMS"
-                className="my-0 mx-auto"
               />
             </Section>
-            <Heading className="text-[#0a0a0a] text-[24px] font-semibold p-0 my-[30px] mx-0 text-center tracking-tight">
+            <Heading className="mx-0 my-[30px] p-0 text-center font-semibold text-[#0a0a0a] text-[24px] tracking-tight">
               Sign in to Pages CMS
             </Heading>
-            <Text className="text-[#0a0a0a] text-[16px] leading-[24px]">Click the button below to sign in to Pages CMS:</Text>
-            <Section className="text-center mt-[24px] mb-[24px]">
+            <Text className="text-[#0a0a0a] text-[16px] leading-[24px]">
+              Click the button below to sign in to Pages CMS:
+            </Text>
+            <Section className="mt-[24px] mb-[24px] text-center">
               <Button
-                className="bg-[#171717] rounded-lg text-white text-[14px] font-medium no-underline text-center px-5 py-3"
+                className="rounded-lg bg-[#171717] px-5 py-3 text-center font-medium text-[14px] text-white no-underline"
                 href={url}
               >
                 Sign in
@@ -59,12 +60,20 @@ export const LoginEmailTemplate = ({
               or copy and paste this URL into your browser:{" "}
             </Text>
             <Text className="text-[#0a0a0a] text-[16px] leading-[24px]">
-              <Link href={url} className="text-[#0a0a0a] underline rounded-md">
+              <Link className="rounded-md text-[#0a0a0a] underline" href={url}>
                 {url}
               </Link>
             </Text>
-            <Text className="text-[#737373] text-[14px] leading-[24px] mt-[36px]">
-              This email was intended for <Link href={`mailto:${email}`} className="text-[#737373] underline">{email}</Link>. If you didn&apos;t try to sign in, you can safely ignore this email.
+            <Text className="mt-[36px] text-[#737373] text-[14px] leading-[24px]">
+              This email was intended for{" "}
+              <Link
+                className="text-[#737373] underline"
+                href={`mailto:${email}`}
+              >
+                {email}
+              </Link>
+              . If you didn&apos;t try to sign in, you can safely ignore this
+              email.
             </Text>
           </Container>
         </Body>

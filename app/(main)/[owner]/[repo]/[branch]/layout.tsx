@@ -1,21 +1,32 @@
 import { redirect } from "next/navigation";
-import { createOctokitInstance } from "@/lib/utils/octokit";
-import { getAuth } from "@/lib/auth";
-import { getToken } from "@/lib/token";
-import { configVersion, parseConfig, normalizeConfig } from "@/lib/config";
-import { getConfig, saveConfig, updateConfig } from "@/lib/utils/config";
-import { ConfigProvider } from "@/contexts/config-context";
-import { RepoLayout } from "@/components/repo/repo-layout";
 import { EmptyCreate } from "@/components/empty-create";
 import { Message } from "@/components/message";
+import { RepoLayout } from "@/components/repo/repo-layout";
+import { ConfigProvider } from "@/contexts/config-context";
+import { getAuth } from "@/lib/auth";
+import { configVersion, normalizeConfig, parseConfig } from "@/lib/config";
+import { getToken } from "@/lib/token";
+import { getConfig, saveConfig, updateConfig } from "@/lib/utils/config";
+import { createOctokitInstance } from "@/lib/utils/octokit";
 
-export default async function Layout({
-  children,
-  params: { owner, repo, branch },
-}: {
-  children: React.ReactNode;
-  params: { owner: string; repo: string; branch: string; };
-}) {
+export default async function Layout(
+  props: {
+    children: React.ReactNode;
+    params: Promise<{ owner: string; repo: string; branch: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    owner,
+    repo,
+    branch
+  } = params;
+
+  const {
+    children
+  } = props;
+
   const { session, user } = await getAuth();
   if (!session) return redirect("/sign-in");
 
@@ -30,17 +41,17 @@ export default async function Layout({
     branch: decodedBranch,
     sha: "",
     version: "",
-    object: {}
-  }
-  
+    object: {},
+  };
+
   let errorMessage = null;
-  
+
   // We try to retrieve the config file (.pages.yml)
   try {
     const octokit = createOctokitInstance(token);
     const response = await octokit.rest.repos.getContent({
-      owner: owner,
-      repo: repo,
+      owner,
+      repo,
       path: ".pages.yml",
       ref: decodedBranch,
       headers: { Accept: "application/vnd.github.v3+json" },
@@ -48,7 +59,8 @@ export default async function Layout({
 
     if (Array.isArray(response.data)) {
       throw new Error("Expected a file but found a directory");
-    } else if (response.data.type !== "file") {
+    }
+    if (response.data.type !== "file") {
       throw new Error("Invalid response type");
     }
 
@@ -56,24 +68,31 @@ export default async function Layout({
 
     // TODO: make it resilient to config not found (e.g. DB down)
 
-    if (savedConfig && savedConfig.sha === response.data.sha && savedConfig.version === configVersion) {
+    if (
+      savedConfig &&
+      savedConfig.sha === response.data.sha &&
+      savedConfig.version === configVersion
+    ) {
       // Config in DB and up-to-date
       config = savedConfig;
     } else {
-      const configFile = Buffer.from(response.data.content, "base64").toString();
+      const configFile = Buffer.from(
+        response.data.content,
+        "base64"
+      ).toString();
       const parsedConfig = parseConfig(configFile);
       const configObject = normalizeConfig(parsedConfig.document.toJSON());
-      
+
       config.sha = response.data.sha;
       config.version = configVersion ?? "0.0";
       config.object = configObject;
 
-      if (!savedConfig) {
-        // Config not in DB
-        await saveConfig(config);
-      } else {
+      if (savedConfig) {
         // Config in DB but outdated (based on sha or version)
         await updateConfig(config);
+      } else {
+        // Config not in DB
+        await saveConfig(config);
       }
     }
   } catch (error: any) {
@@ -81,22 +100,24 @@ export default async function Layout({
       if (error.response.data.message === "Not Found") {
         errorMessage = (
           <Message
-            title="No configuration file"
-            description={`You need to add a ".pages.yml" file to this branch.`}
             className="absolute inset-0"
+            description={`You need to add a ".pages.yml" file to this branch.`}
+            title="No configuration file"
           >
-            <EmptyCreate type="settings">Create a configuration file</EmptyCreate>
+            <EmptyCreate type="settings">
+              Create a configuration file
+            </EmptyCreate>
           </Message>
         );
       } else {
         // We assume the branch is not valid
         errorMessage = (
           <Message
-            title="Invalid branch"
-            description={`The branch "${decodedBranch}" doesn't exist. It may have been removed or renamed.`}
             className="absolute inset-0"
-            href={`/${owner}/${repo}`}
             cta={"Switch to the default branch"}
+            description={`The branch "${decodedBranch}" doesn't exist. It may have been removed or renamed.`}
+            href={`/${owner}/${repo}`}
+            title="Invalid branch"
           />
         );
       }

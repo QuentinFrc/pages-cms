@@ -3,8 +3,10 @@
 import { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 
-const EditComponent = forwardRef((props: any, ref: React.Ref<HTMLInputElement>) => {
-  return <Input {...props} ref={ref} type="number" className="text-base" />;
-});
+const EditComponent = forwardRef(
+  (props: any, ref: React.Ref<HTMLInputElement>) => (
+    <Input {...props} className="text-base" ref={ref} type="number" />
+  )
+);
 
 export { EditComponent };

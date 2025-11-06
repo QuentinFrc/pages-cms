@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { Providers } from "@/components/providers";
 import { getAuth } from "@/lib/auth";
 import { getAccounts } from "@/lib/utils/accounts";
-import { Providers } from "@/components/providers";
 
 export default async function Layout({
   children,
@@ -13,10 +13,6 @@ export default async function Layout({
 
   const accounts = await getAccounts(user);
   const userWithAccounts = { ...user, accounts };
-  
-	return (
-    <Providers user={userWithAccounts}>
-      {children}
-    </Providers>
-  );
+
+  return <Providers user={userWithAccounts}>{children}</Providers>;
 }

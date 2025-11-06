@@ -25,15 +25,17 @@ const EditComponent = forwardRef((props: any, ref) => {
     adjustHeight(event.target);
   };
 
-  return <Textarea
-    {...props}
-    ref={internalRef}
-    rows={field.options?.rows ?? 6}
-    minLength={field.options?.minlength}
-    maxLength={field.options?.maxlength}
-    onInput={handleInput}
-    className="text-base"
-  />;
+  return (
+    <Textarea
+      {...props}
+      className="text-base"
+      maxLength={field.options?.maxlength}
+      minLength={field.options?.minlength}
+      onInput={handleInput}
+      ref={internalRef}
+      rows={field.options?.rows ?? 6}
+    />
+  );
 });
 
 export { EditComponent };

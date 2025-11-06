@@ -2,49 +2,49 @@
  * Get the list of GitHub accounts the user (incl. collaborators) has access to.
  */
 
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { collaboratorTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { getUserToken } from "@/lib/token";
 import { getInstallations } from "@/lib/githubApp";
-import { User } from "@/types/user";
+import { getUserToken } from "@/lib/token";
+import type { User } from "@/types/user";
 
 const getAccounts = async (user: User) => {
   let accounts;
 
-	if (user.githubId) {
-		const token = await getUserToken();
-		if (!token) throw new Error("Token not found");
-		
-		const installations = await getInstallations(token);
+  if (user.githubId) {
+    const token = await getUserToken();
+    if (!token) throw new Error("Token not found");
 
-		accounts = [
-			...installations.map((installation: any) => ({
-				login: installation.account.login,
-				type: installation.account.type === "User" ? "user" : "org",
-				repositorySelection: installation.repository_selection,
-        installationId: installation.id
-			}))
-		];
-	} else {
-		const groupedRepos = await db
-			.selectDistinct({
-				owner: collaboratorTable.owner,
-				type: collaboratorTable.type,
-        installationId: collaboratorTable.installationId
-			})
-			.from(collaboratorTable)
-			.where(eq(collaboratorTable.email, user.email));
+    const installations = await getInstallations(token);
 
-		accounts = groupedRepos.map(collaborator => ({
-			login: collaborator.owner,
-			type: collaborator.type,
-			repositorySelection: "selected",
-      installationId: collaborator.installationId
-		}));
-	}
+    accounts = [
+      ...installations.map((installation: any) => ({
+        login: installation.account.login,
+        type: installation.account.type === "User" ? "user" : "org",
+        repositorySelection: installation.repository_selection,
+        installationId: installation.id,
+      })),
+    ];
+  } else {
+    const groupedRepos = await db
+      .selectDistinct({
+        owner: collaboratorTable.owner,
+        type: collaboratorTable.type,
+        installationId: collaboratorTable.installationId,
+      })
+      .from(collaboratorTable)
+      .where(eq(collaboratorTable.email, user.email));
 
-	if (accounts.length === 0) return [];
+    accounts = groupedRepos.map((collaborator) => ({
+      login: collaborator.owner,
+      type: collaborator.type,
+      repositorySelection: "selected",
+      installationId: collaborator.installationId,
+    }));
+  }
+
+  if (accounts.length === 0) return [];
 
   return accounts;
 };
