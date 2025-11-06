@@ -6,7 +6,7 @@
 
 import { getFileName, getParentPath } from "@/lib/utils/file";
 
-const ttl = 30000; // TTL for the cache (30 seconds)
+const ttl = 30_000; // TTL for the cache (30 seconds)
 const cache: { [key: string]: any } = {};
 const requests: { [key: string]: Promise<any> | undefined } = {};
 
@@ -21,13 +21,16 @@ const getRelativeUrl = (
   let relativePath = path;
 
   if (path.startsWith("https://raw.githubusercontent.com/")) {
-    const pattern = new RegExp(`^https://raw\\.githubusercontent\\.com/${owner}/${repo}/${encodeURIComponent(branch)}/`, "i");
+    const pattern = new RegExp(
+      `^https://raw\\.githubusercontent\\.com/${owner}/${repo}/${encodeURIComponent(branch)}/`,
+      "i"
+    );
     relativePath = path.replace(pattern, "");
     relativePath = relativePath.split("?")[0];
   }
 
   return encode ? encodePath(relativePath) : relativePath;
-}
+};
 
 // Get the raw.githubusercontent.com URL for an image.
 const getRawUrl = async (
@@ -40,14 +43,14 @@ const getRawUrl = async (
   decode = false
 ) => {
   const decodedPath = decode ? decodeURIComponent(path) : path;
-  
+
   if (isPrivate) {
     const filename = getFileName(decodedPath);
     if (!filename) return null;
     const parentPath = getParentPath(decodedPath);
-    
+
     const parentFullPath = `${owner}/${repo}/${encodeURIComponent(branch)}/${parentPath}`;
-    
+
     if (requests[parentFullPath]) {
       try {
         await requests[parentFullPath];
@@ -58,23 +61,30 @@ const getRawUrl = async (
     }
 
     const cacheExists = cache[parentFullPath]?.files?.[filename];
-    const cacheExpired = !cache[parentFullPath]?.time || (Date.now() - cache[parentFullPath].time > ttl);
-    
+    const cacheExpired =
+      !cache[parentFullPath]?.time ||
+      Date.now() - cache[parentFullPath].time > ttl;
+
     if (cacheExists && !cacheExpired) {
       return cache[parentFullPath].files[filename];
     }
-    
+
     if (cacheExpired || !cacheExists) {
       delete cache[parentFullPath];
-      
+
       if (!requests[parentFullPath]) {
-        requests[parentFullPath] = fetch(`/api/${owner}/${repo}/${encodeURIComponent(branch)}/media/${encodeURIComponent(name)}/${encodeURIComponent(parentPath)}?nocache=true`)
-          .then(response => {
-            if (!response.ok) throw new Error(`Failed to fetch media: ${response.status} ${response.statusText}`);
-            
+        requests[parentFullPath] = fetch(
+          `/api/${owner}/${repo}/${encodeURIComponent(branch)}/media/${encodeURIComponent(name)}/${encodeURIComponent(parentPath)}?nocache=true`
+        )
+          .then((response) => {
+            if (!response.ok)
+              throw new Error(
+                `Failed to fetch media: ${response.status} ${response.statusText}`
+              );
+
             return response.json();
           })
-          .catch(err => {
+          .catch((err) => {
             delete requests[parentFullPath];
             throw err;
           });
@@ -86,11 +96,11 @@ const getRawUrl = async (
       } finally {
         delete requests[parentFullPath];
       }
-      
+
       if (!cache[parentFullPath] && response.status === "success") {
         cache[parentFullPath] = {
           time: Date.now(),
-          files: {}
+          files: {},
         };
         response.data.forEach((file: any) => {
           cache[parentFullPath].files[file.name] = file.url;
@@ -101,9 +111,8 @@ const getRawUrl = async (
     }
 
     return cache[parentFullPath]?.files?.[filename];
-  } else {
-    return `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${encodeURI(decodedPath)}`;
   }
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${encodeURI(decodedPath)}`;
 };
 
 // Convert all raw.githubusercontent.com URLs in a HTML string to relative paths.
@@ -117,20 +126,29 @@ const rawToRelativeUrls = (
   const matches = getImgSrcs(html);
   for (const match of matches) {
     const src = match[1] || match[2];
-    const quote = match[1] ? "\"" : "'";
+    const quote = match[1] ? '"' : "'";
 
     if (src.startsWith("https://raw.githubusercontent.com/")) {
-      let relativePath = src.replace(new RegExp(`https://raw\\.githubusercontent\\.com/${owner}/${repo}/${encodeURIComponent(branch)}/`, "gi"), "");
+      let relativePath = src.replace(
+        new RegExp(
+          `https://raw\\.githubusercontent\\.com/${owner}/${repo}/${encodeURIComponent(branch)}/`,
+          "gi"
+        ),
+        ""
+      );
       relativePath = relativePath.split("?")[0];
 
       if (!encode) relativePath = decodeURIComponent(relativePath);
-      
-      html = html.replace(`src=${quote}${src}${quote}`, `src=${quote}${relativePath}${quote}`);
+
+      html = html.replace(
+        `src=${quote}${src}${quote}`,
+        `src=${quote}${relativePath}${quote}`
+      );
     }
   }
 
   return html;
-}
+};
 
 // Convert all relative image paths in a HTML string to raw.githubusercontent.com URLs.
 const relativeToRawUrls = async (
@@ -147,19 +165,36 @@ const relativeToRawUrls = async (
   const matches = getImgSrcs(newHtml);
   for (const match of matches) {
     const src = match[1] || match[2];
-    const quote = match[1] ? "\"" : "'";
+    const quote = match[1] ? '"' : "'";
 
-    if (!src.startsWith("http://") && !src.startsWith("https://") && !src.startsWith("data:image/")) {  
+    if (
+      !(
+        src.startsWith("http://") ||
+        src.startsWith("https://") ||
+        src.startsWith("data:image/")
+      )
+    ) {
       // TODO: what does the function returns if it fails?
-      const rawUrl = await getRawUrl(owner, repo, branch, name, src, isPrivate, true);
+      const rawUrl = await getRawUrl(
+        owner,
+        repo,
+        branch,
+        name,
+        src,
+        isPrivate,
+        true
+      );
       if (rawUrl) {
-        newHtml = newHtml.replace(`src=${quote}${src}${quote}`, `src=${quote}${rawUrl}${quote}`);
+        newHtml = newHtml.replace(
+          `src=${quote}${src}${quote}`,
+          `src=${quote}${rawUrl}${quote}`
+        );
       }
     }
   }
-  
+
   return newHtml;
-}
+};
 
 // Swap the prefix of an image path (raw.githubusercontent.com url <> relative path)
 const swapPrefix = (
@@ -169,34 +204,37 @@ const swapPrefix = (
   relative = false
 ) => {
   if (
-    path == null
-    || from == null
-    || to == null
-    || (from === to)
-    || path.startsWith("//")
-    || path.startsWith("http://")
-    || path.startsWith("https://")
-    || path.startsWith("data:image/")
-    || !path.startsWith(from)
-  ) return path;
-  
+    path == null ||
+    from == null ||
+    to == null ||
+    from === to ||
+    path.startsWith("//") ||
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("data:image/") ||
+    !path.startsWith(from)
+  )
+    return path;
+
   let newPath;
-  
+
   if (from === "" && to !== "/") {
     newPath = `${to}/${path}`;
   } else if (from === "" && to === "/") {
     newPath = `/${path}`;
   } else {
     const remainingPath = path.slice(from.length);
-    newPath = to === "/" 
-      ? `/${remainingPath.replace(/^\//, '')}` 
-      : `${to}/${remainingPath.replace(/^\//, '')}`;
+    newPath =
+      to === "/"
+        ? `/${remainingPath.replace(/^\//, "")}`
+        : `${to}/${remainingPath.replace(/^\//, "")}`;
   }
 
-  if (newPath && newPath.startsWith("/") && relative) newPath = newPath.substring(1);
+  if (newPath && newPath.startsWith("/") && relative)
+    newPath = newPath.substring(1);
 
   return newPath;
-}
+};
 
 // Swap the prefix of all images in a HTML string.
 const htmlSwapPrefix = (
@@ -206,35 +244,43 @@ const htmlSwapPrefix = (
   relative = false
 ) => {
   if (from === to || html == null || from == null || to == null) return html;
-  
+
   let newHtml = html;
   const matches = getImgSrcs(newHtml);
-  
-  matches.forEach(match => {
+
+  matches.forEach((match) => {
     const src = match[1] || match[2];
-    const quote = match[1] ? "\"" : "'";
-    
+    const quote = match[1] ? '"' : "'";
+
     const newSrc = swapPrefix(src, from, to, relative);
     if (newSrc !== src) {
       // Use a regex with global flag to replace all occurrences
-      const escapedSrc = src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex chars
-      const regex = new RegExp(`src=${quote}${escapedSrc}${quote}`, 'g');
+      const escapedSrc = src.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // Escape special regex chars
+      const regex = new RegExp(`src=${quote}${escapedSrc}${quote}`, "g");
       newHtml = newHtml.replace(regex, `src=${quote}${newSrc}${quote}`);
     }
   });
 
   return newHtml;
-}
+};
 
 // Encode a path for use in a URL.
-const encodePath = (path: string) => {
-  return path.split("/").map(encodeURIComponent).join("/");
-}
+const encodePath = (path: string) =>
+  path.split("/").map(encodeURIComponent).join("/");
 
 // Get all image sources from an HTML string.
 const getImgSrcs = (html: string) => {
   const regex = /<img [^>]*src=(?:"([^"]+)"|'([^']+)')[^>]*>/g;
   return Array.from(html.matchAll(regex));
-}
+};
 
-export { getRelativeUrl, getRawUrl, relativeToRawUrls, rawToRelativeUrls, swapPrefix, htmlSwapPrefix, encodePath, getImgSrcs };
+export {
+  getRelativeUrl,
+  getRawUrl,
+  relativeToRawUrls,
+  rawToRelativeUrls,
+  swapPrefix,
+  htmlSwapPrefix,
+  encodePath,
+  getImgSrcs,
+};

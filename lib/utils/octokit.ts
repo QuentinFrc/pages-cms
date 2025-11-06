@@ -16,7 +16,7 @@ export const createOctokitInstance = (token: string, options?: any) => {
       fetch: async (url: string, options: RequestInit) => {
         try {
           const response = await fetch(url, options);
-          
+
           // Only attempt to log out on a 401 status
           if (response.status === 401) {
             try {
@@ -30,13 +30,13 @@ export const createOctokitInstance = (token: string, options?: any) => {
               console.warn("Could not parse 401 response:", parseError);
             }
           }
-          
+
           // Always return the original response regardless of status
           return response;
         } catch (error) {
           throw error;
         }
-      }
-    }
+      },
+    },
   });
 };

@@ -1,17 +1,17 @@
 "use client";
 
-import { forwardRef, useMemo } from "react";
-import CodeMirror, { EditorView } from '@uiw/react-codemirror';
-import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
-import { StreamLanguage } from "@codemirror/language";
-import { languages } from "@codemirror/language-data";
+import { html } from "@codemirror/lang-html";
 import { javascript } from "@codemirror/lang-javascript";
 import { json } from "@codemirror/lang-json";
-import { html } from "@codemirror/lang-html";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { StreamLanguage } from "@codemirror/language";
+import { languages } from "@codemirror/language-data";
 import { yaml } from "@codemirror/legacy-modes/mode/yaml";
-import { useTheme } from "next-themes";
 import { linter } from "@codemirror/lint";
+import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
+import { useTheme } from "next-themes";
+import { forwardRef, useMemo } from "react";
 import "./edit-component.css";
 
 // TODO: implement minlength and maxlength
@@ -21,7 +21,7 @@ const EditComponent = forwardRef((props: any, ref: any) => {
   const { resolvedTheme } = useTheme();
 
   const extensions = useMemo(() => {
-    let exts = [EditorView.lineWrapping];
+    const exts = [EditorView.lineWrapping];
 
     switch (field.options?.format) {
       case "yaml":
@@ -44,7 +44,9 @@ const EditComponent = forwardRef((props: any, ref: any) => {
         exts.push(html());
         break;
       default:
-        exts.push(markdown({ base: markdownLanguage, codeLanguages: languages }));
+        exts.push(
+          markdown({ base: markdownLanguage, codeLanguages: languages })
+        );
         break;
     }
 
@@ -57,8 +59,6 @@ const EditComponent = forwardRef((props: any, ref: any) => {
 
   return (
     <CodeMirror
-      ref={ref}
-      value={value}
       basicSetup={{
         foldGutter: false,
         lineNumbers: false,
@@ -67,7 +67,9 @@ const EditComponent = forwardRef((props: any, ref: any) => {
       }}
       extensions={extensions}
       onChange={onChange}
+      ref={ref}
       theme={resolvedTheme === "dark" ? githubDark : githubLight}
+      value={value}
     />
   );
 });

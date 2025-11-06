@@ -1,20 +1,22 @@
 "use client";
 
-import { forwardRef, useMemo, useState, useCallback, useEffect } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import "./edit-component.css";
+import { ChevronDown, X } from "lucide-react";
 import Select, { components } from "react-select";
-import CreatableSelect from "react-select/creatable";
 import AsyncSelect from "react-select/async";
 import AsyncCreatableSelect from "react-select/async-creatable";
-import { ChevronDown, X } from "lucide-react";
-import { safeAccess, interpolate } from "@/lib/schema";
+import CreatableSelect from "react-select/creatable";
+import { interpolate, safeAccess } from "@/lib/schema";
 
 const Option = ({ children, ...props }: any) => {
   const { data } = props;
   return (
     <components.Option {...props}>
       <div className="flex items-center gap-2">
-        {data.image && <img src={data.image} alt="" className="w-6 h-6 rounded-full" />}
+        {data.image && (
+          <img alt="" className="h-6 w-6 rounded-full" src={data.image} />
+        )}
         {children}
       </div>
     </components.Option>
@@ -26,7 +28,9 @@ const SingleValue = ({ children, ...props }: any) => {
   return (
     <components.SingleValue {...props}>
       <div className="flex items-center gap-2">
-        {data.image && <img src={data.image} alt="" className="w-6 h-6 rounded-full" />}
+        {data.image && (
+          <img alt="" className="h-6 w-6 rounded-full" src={data.image} />
+        )}
         {children}
       </div>
     </components.SingleValue>
@@ -35,23 +39,23 @@ const SingleValue = ({ children, ...props }: any) => {
 
 const DropdownIndicator = (props: any) => (
   <components.DropdownIndicator {...props}>
-    <ChevronDown className="w-4 h-4" />
+    <ChevronDown className="h-4 w-4" />
   </components.DropdownIndicator>
 );
 
 const ClearIndicator = (props: any) => (
   <components.ClearIndicator {...props}>
-    <X className="w-4 h-4" />
+    <X className="h-4 w-4" />
   </components.ClearIndicator>
 );
 
 const MultiValueRemove = (props: any) => (
   <components.MultiValueRemove {...props}>
-    <X className="w-3 h-3 stroke-[2.5]" />
+    <X className="h-3 w-3 stroke-[2.5]" />
   </components.MultiValueRemove>
 );
 
-type ParamValue = string | { value: 'input' } | { template: string };
+type ParamValue = string | { value: "input" } | { template: string };
 
 type FetchConfig = {
   url: string;
@@ -67,7 +71,7 @@ type FetchConfig = {
 
 const EditComponent = forwardRef((props: any, ref: any) => {
   const { value, field, onChange } = props;
-  
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => setIsMounted(true), []);
@@ -94,13 +98,17 @@ const EditComponent = forwardRef((props: any, ref: any) => {
 
       try {
         const searchParams = new URLSearchParams();
-        
+
         // Handle params
         if (fetchConfig.params) {
           Object.entries(fetchConfig.params).forEach(([key, paramValue]) => {
             if (Array.isArray(paramValue)) {
-              paramValue.forEach(value => {
-                const interpolatedValue = interpolate(value, { input }, "fields");
+              paramValue.forEach((value) => {
+                const interpolatedValue = interpolate(
+                  value,
+                  { input },
+                  "fields"
+                );
                 searchParams.append(key, interpolatedValue);
               });
             } else {
@@ -111,25 +119,27 @@ const EditComponent = forwardRef((props: any, ref: any) => {
         }
 
         const queryString = searchParams.toString();
-        const url = `${fetchConfig.url}${queryString ? `?${queryString}` : ''}`;
-        
+        const url = `${fetchConfig.url}${queryString ? `?${queryString}` : ""}`;
+
         const response = await fetch(url, {
           method: fetchConfig.method || "GET",
           headers: fetchConfig.headers || {},
         });
         if (!response.ok) throw new Error("Fetch failed");
         const data = await response.json();
-        const results = fetchConfig.results ? safeAccess(data, fetchConfig.results) : data;
+        const results = fetchConfig.results
+          ? safeAccess(data, fetchConfig.results)
+          : data;
         if (!Array.isArray(results)) return [];
         return results.map((item: any) => ({
-          value: fetchConfig.value ? 
-            interpolate(fetchConfig.value, item, "fields")
+          value: fetchConfig.value
+            ? interpolate(fetchConfig.value, item, "fields")
             : item.id,
-          label: fetchConfig.label ?
-            interpolate(fetchConfig.label, item, "fields")
+          label: fetchConfig.label
+            ? interpolate(fetchConfig.label, item, "fields")
             : item.name,
-          image: fetchConfig.image ? 
-            interpolate(fetchConfig.image, item, "fields")
+          image: fetchConfig.image
+            ? interpolate(fetchConfig.image, item, "fields")
             : undefined,
         }));
       } catch (error) {
@@ -146,25 +156,34 @@ const EditComponent = forwardRef((props: any, ref: any) => {
       return values.map((val: any) => ({ value: val, label: val }));
     }
     if (!value) return null;
-    return { value: value, label: value };
+    return { value, label: value };
   });
 
   const handleChange = useCallback(
     (newValue: any) => {
-      if (!field.options?.fetch) {
-        setSelectedOptions(newValue);
-      } else {
-        const selectedValue = newValue 
-          ? field.options?.multiple 
-            ? newValue.map((item: any) => ({ value: item.value, label: item.value }))
+      if (field.options?.fetch) {
+        const selectedValue = newValue
+          ? field.options?.multiple
+            ? newValue.map((item: any) => ({
+                value: item.value,
+                label: item.value,
+              }))
             : { value: newValue.value, label: newValue.value }
-          : field.options?.multiple ? [] : null;
+          : field.options?.multiple
+            ? []
+            : null;
         setSelectedOptions(selectedValue);
+      } else {
+        setSelectedOptions(newValue);
       }
 
       const output = field.options?.multiple
-        ? newValue ? newValue.map((item: any) => item.value) : []
-        : newValue ? newValue.value : null;
+        ? newValue
+          ? newValue.map((item: any) => item.value)
+          : []
+        : newValue
+          ? newValue.value
+          : null;
       onChange(output);
     },
     [onChange, field.options?.multiple, field.options?.fetch]
@@ -181,36 +200,38 @@ const EditComponent = forwardRef((props: any, ref: any) => {
       : Select;
 
   const fetchConfig = field.options?.fetch as FetchConfig;
-  
+
   // Determine if we should load options immediately based on minlength
-  const shouldLoadInitially = fetchConfig?.minlength === undefined || fetchConfig?.minlength === 0;
-  
+  const shouldLoadInitially =
+    fetchConfig?.minlength === undefined || fetchConfig?.minlength === 0;
+
   // Use field.options.default if defined, otherwise use our automatic behavior
-  const defaultOptions = field.options?.default !== undefined 
-    ? field.options.default 
-    : shouldLoadInitially;
+  const defaultOptions =
+    field.options?.default !== undefined
+      ? field.options.default
+      : shouldLoadInitially;
 
   return (
     <SelectComponent
-      ref={ref}
-      isMulti={field.options?.multiple}
-      isClearable={true}
       classNamePrefix="react-select"
-      placeholder={field.options?.placeholder || "Select..."}
-      components={{ 
-        DropdownIndicator, 
-        ClearIndicator, 
+      components={{
+        DropdownIndicator,
+        ClearIndicator,
         MultiValueRemove,
         Option,
         SingleValue,
       }}
-      value={selectedOptions}
+      isClearable={true}
+      isMulti={field.options?.multiple}
       onChange={handleChange}
+      placeholder={field.options?.placeholder || "Select..."}
+      ref={ref}
+      value={selectedOptions}
       {...(fetchConfig
         ? {
             loadOptions,
             cacheOptions: field.options?.cache ?? true,
-            defaultOptions: defaultOptions
+            defaultOptions,
           }
         : { options: staticOptions })}
     />

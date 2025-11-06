@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { handleSignOutAndSignIn, handleSignInWithToken } from "@/lib/actions/auth";
-import { Button, buttonVariants } from "@/components/ui/button";
-import Link from "next/link";
 import { Loader } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  handleSignInWithToken,
+  handleSignOutAndSignIn,
+} from "@/lib/actions/auth";
 
 export function SignInFromInvite({
   token,
   githubUsername,
   email,
-  redirectTo
+  redirectTo,
 }: {
   token: string;
   githubUsername?: string;
@@ -36,45 +39,64 @@ export function SignInFromInvite({
   };
 
   return (
-    <div className="h-screen p-4 md:p-6 flex justify-center items-center">
-      <div className="sm:max-w-[340px] w-full space-y-6">
-        {githubUsername
-          ? <>
-              <h1 className="text-xl lg:text-2xl font-semibold tracking-tight text-center">Sign out from your GitHub account?</h1>
-              <p className="text-sm text-muted-foreground">
-                You are already signed in with your GitHub account (@{githubUsername}). 
-                {redirectTo
-                  ? ` Do you want to sign out from your GitHub account and sign in as a collaborator with ${email} or try to access "${redirectTo}" with your GitHub account?`
-                  : ` Do you want to sign out from your GitHub account and sign in as a collaborator with ${email}?`
-                }
-              </p>
-              <footer className="flex flex-col gap-y-2">
-                <Button variant="default" onClick={() => {
+    <div className="flex h-screen items-center justify-center p-4 md:p-6">
+      <div className="w-full space-y-6 sm:max-w-[340px]">
+        {githubUsername ? (
+          <>
+            <h1 className="text-center font-semibold text-xl tracking-tight lg:text-2xl">
+              Sign out from your GitHub account?
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              You are already signed in with your GitHub account (@
+              {githubUsername}).
+              {redirectTo
+                ? ` Do you want to sign out from your GitHub account and sign in as a collaborator with ${email} or try to access "${redirectTo}" with your GitHub account?`
+                : ` Do you want to sign out from your GitHub account and sign in as a collaborator with ${email}?`}
+            </p>
+            <footer className="flex flex-col gap-y-2">
+              <Button
+                disabled={isLoading}
+                onClick={() => {
                   setIsLoading(true);
                   handleSignOutAndSignIn(token, redirectTo);
-                }} disabled={isLoading}>
-                  Sign in as collaborator
-                  {isLoading && <Loader className="ml-2 h-4 w-4 animate-spin" />}
-                </Button>
-                {redirectTo && (
-                  <Link href={redirectTo} className={buttonVariants({ variant: "outline" })}><span className="truncate">Go to &quot;{redirectTo}&quot;</span></Link>
-                )}
-              </footer>
-            </>
-          :
-            <>
-              <h1 className="text-xl lg:text-2xl font-semibold tracking-tight text-center">Sign in as a collaborator?</h1>
-              <p className="text-sm text-muted-foreground">
-                Please confirm that you want to sign in with {email}.
-              </p>
-              <footer className="flex flex-col gap-y-2">
-                <Button variant="default" onClick={handleSignIn} disabled={isLoading}>
-                  Sign in
-                  {isLoading && <Loader className="ml-2 h-4 w-4 animate-spin" />}
-                </Button>
-              </footer>
-            </>
-        }
+                }}
+                variant="default"
+              >
+                Sign in as collaborator
+                {isLoading && <Loader className="ml-2 h-4 w-4 animate-spin" />}
+              </Button>
+              {redirectTo && (
+                <Link
+                  className={buttonVariants({ variant: "outline" })}
+                  href={redirectTo}
+                >
+                  <span className="truncate">
+                    Go to &quot;{redirectTo}&quot;
+                  </span>
+                </Link>
+              )}
+            </footer>
+          </>
+        ) : (
+          <>
+            <h1 className="text-center font-semibold text-xl tracking-tight lg:text-2xl">
+              Sign in as a collaborator?
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Please confirm that you want to sign in with {email}.
+            </p>
+            <footer className="flex flex-col gap-y-2">
+              <Button
+                disabled={isLoading}
+                onClick={handleSignIn}
+                variant="default"
+              >
+                Sign in
+                {isLoading && <Loader className="ml-2 h-4 w-4 animate-spin" />}
+              </Button>
+            </footer>
+          </>
+        )}
       </div>
     </div>
   );

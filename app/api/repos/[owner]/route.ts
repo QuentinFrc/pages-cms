@@ -1,19 +1,19 @@
-import { type NextRequest } from "next/server";
-import { createOctokitInstance } from "@/lib/utils/octokit";
-import { getAuth } from "@/lib/auth";
-import { getInstallations, getInstallationRepos } from "@/lib/githubApp";
-import { getUserToken } from "@/lib/token";
-import { db } from "@/db";
 import { and, eq } from "drizzle-orm";
+import type { NextRequest } from "next/server";
+import { db } from "@/db";
 import { collaboratorTable } from "@/db/schema";
+import { getAuth } from "@/lib/auth";
+import { getInstallationRepos, getInstallations } from "@/lib/githubApp";
+import { getUserToken } from "@/lib/token";
+import { createOctokitInstance } from "@/lib/utils/octokit";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Fetches repositories for a user.
- * 
+ *
  * GET /api/repos/[owner]
- * 
+ *
  * Requires authentication.
  */
 
@@ -36,41 +36,46 @@ export async function GET(
 
       const repositorySelection = searchParams.get("repository_selection");
 
-      if (repositorySelection === "selected") {  
+      if (repositorySelection === "selected") {
         // Only some repos are selected
         // TODO: investigate why it's slow
         const installations = await getInstallations(token, [params.owner]);
-        if (installations.length !== 1) throw new Error(`"${params.owner}" is not part of your GitHub App installations`);
+        if (installations.length !== 1)
+          throw new Error(
+            `"${params.owner}" is not part of your GitHub App installations`
+          );
 
-        repos =  await getInstallationRepos(token, installations[0].id);
+        repos = await getInstallationRepos(token, installations[0].id);
       } else {
         // All repos are selected, we search for the repos based on parameters
         const keyword = searchParams.get("keyword");
-        
+
         const octokit = createOctokitInstance(token);
         const query = `${keyword} in:name ${type}:${params.owner} fork:true`;
         const response = await octokit.rest.search.repos({
           q: query,
           sort: "updated",
           order: "desc",
-          per_page: 5
+          per_page: 5,
         });
         repos = response.data.items;
       }
 
-      repos = repos.filter(repo => repo.permissions.push).map(repo => ({
-        owner: repo.owner.login,
-        repo: repo.name,
-        private: repo.private,
-        defaultBranch: repo.default_branch,
-        updatedAt: repo.updated_at,
-      }));
+      repos = repos
+        .filter((repo) => repo.permissions.push)
+        .map((repo) => ({
+          owner: repo.owner.login,
+          repo: repo.name,
+          private: repo.private,
+          defaultBranch: repo.default_branch,
+          updatedAt: repo.updated_at,
+        }));
     } else {
       repos = await db.query.collaboratorTable.findMany({
         where: and(
           eq(collaboratorTable.email, user.email),
           eq(collaboratorTable.owner, params.owner)
-        )
+        ),
       });
     }
 

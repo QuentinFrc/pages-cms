@@ -1,9 +1,9 @@
 "use client";
 
+import { ArrowUpRight } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useConfig } from "@/contexts/config-context";
-import { getParentPath, getRelativePath, joinPathSegments, normalizePath } from "@/lib/utils/file";
-import { getSchemaByName } from "@/lib/schema";
+import { toast } from "sonner";
+import { FileRename } from "@/components/file/file-rename";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,9 +22,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
-import { ArrowUpRight } from "lucide-react";
-import { FileRename } from "@/components/file/file-rename";
+import { useConfig } from "@/contexts/config-context";
+import { getSchemaByName } from "@/lib/schema";
+import {
+  getParentPath,
+  getRelativePath,
+  normalizePath,
+} from "@/lib/utils/file";
 
 export function FileOptions({
   path,
@@ -34,7 +38,7 @@ export function FileOptions({
   portalProps,
   onDelete,
   onRename,
-  children
+  children,
 }: {
   path: string;
   sha: string;
@@ -46,7 +50,7 @@ export function FileOptions({
   children: React.ReactNode;
 }) {
   const { config } = useConfig();
-  if (!config) throw new Error(`Configuration not found.`);
+  if (!config) throw new Error("Configuration not found.");
 
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
   const rootPath = useMemo(() => {
@@ -60,7 +64,10 @@ export function FileOptions({
     }
     return getParentPath(path);
   }, [type, name, config.object, path]);
-  const relativePath = useMemo(() => getRelativePath(normalizedPath, rootPath), [normalizedPath, rootPath]);
+  const relativePath = useMemo(
+    () => getRelativePath(normalizedPath, rootPath),
+    [normalizedPath, rootPath]
+  );
 
   const [newPath, setNewPath] = useState(relativePath);
   const [isRenameOpen, setIsRenameOpen] = useState(false);
@@ -69,19 +76,26 @@ export function FileOptions({
     try {
       const deletePromise = new Promise(async (resolve, reject) => {
         try {
-          const params = new URLSearchParams({ 
+          const params = new URLSearchParams({
             sha,
-            type: (type === "collection" || type === "file") ? "content" : type
+            type: type === "collection" || type === "file" ? "content" : type,
           });
           if (name) params.set("name", name);
 
-          const response = await fetch(`/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizedPath)}?${params.toString()}`, {
-            method: "DELETE",
-          });
+          const response = await fetch(
+            `/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/files/${encodeURIComponent(normalizedPath)}?${params.toString()}`,
+            {
+              method: "DELETE",
+            }
+          );
 
           const data: any = await response.json();
 
-          if (!response.ok) throw new Error(data.message || `Failed to delete file: ${response.status} ${response.statusText}`);
+          if (!response.ok)
+            throw new Error(
+              data.message ||
+                `Failed to delete file: ${response.status} ${response.statusText}`
+            );
 
           if (data.status !== "success") throw new Error(data.message);
 
@@ -103,62 +117,68 @@ export function FileOptions({
       console.error(error);
     }
   };
-  
+
   return (
     <>
       <AlertDialog>
         <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            {children}
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
           <DropdownMenuContent align="end" portalProps={portalProps}>
             <DropdownMenuItem asChild>
-              <a href={`https://github.com/${config.owner}/${config.repo}/blob/${encodeURIComponent(config.branch)}/${path}`} target="_blank">
+              <a
+                href={`https://github.com/${config.owner}/${config.repo}/blob/${encodeURIComponent(config.branch)}/${path}`}
+                target="_blank"
+              >
                 <span className="mr-4">See on GitHub</span>
-                <ArrowUpRight className="h-3 w-3 ml-auto min-ml-4 opacity-50" />
+                <ArrowUpRight className="min-ml-4 ml-auto h-3 w-3 opacity-50" />
               </a>
             </DropdownMenuItem>
-            {type !== "settings"
-              ? <>
-                  <DropdownMenuSeparator />
-                  {type !== "file" &&
-                    <DropdownMenuItem onSelect={() => setIsRenameOpen(true)}>
-                      Rename
-                    </DropdownMenuItem>
-                  }
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem>
-                      <span className="text-red-500">Delete</span>
-                    </DropdownMenuItem>
-                  </AlertDialogTrigger>
-                </>
-              : null
-            }
+            {type !== "settings" ? (
+              <>
+                <DropdownMenuSeparator />
+                {type !== "file" && (
+                  <DropdownMenuItem onSelect={() => setIsRenameOpen(true)}>
+                    Rename
+                  </DropdownMenuItem>
+                )}
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem>
+                    <span className="text-red-500">Delete</span>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+              </>
+            ) : null}
           </DropdownMenuContent>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to delete this file?</AlertDialogTitle>
-              <AlertDialogDescription>This will premanently delete &quot;{path}&quot;.</AlertDialogDescription>
+              <AlertDialogTitle>
+                Are you sure you want to delete this file?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This will premanently delete &quot;{path}&quot;.
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+              <AlertDialogAction onClick={handleConfirmDelete}>
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </DropdownMenu>
       </AlertDialog>
 
-      {type !== "settings" &&
+      {type !== "settings" && (
         <FileRename
           isOpen={isRenameOpen}
-          onOpenChange={setIsRenameOpen}
-          path={path}
-          type={type}
-          sha={sha}
           name={name}
+          onOpenChange={setIsRenameOpen}
           onRename={onRename}
+          path={path}
+          sha={sha}
+          type={type}
         />
-      }
+      )}
     </>
   );
 }

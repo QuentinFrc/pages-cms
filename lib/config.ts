@@ -1,23 +1,26 @@
 /**
  * Functions to parse, normalize and validate the configuration file.
- * 
+ *
  * Look at the `lib/utils/config.ts` file to understand how the config is
  * retrieved, saved and updated in the DB.
  */
 
-import YAML from "yaml";
-import { getFileExtension, extensionCategories } from "@/lib/utils/file";
-import { ConfigSchema } from "@/lib/configSchema";
-import { z } from "zod";
 import mergeWith from "lodash.mergewith";
+import YAML from "yaml";
+import { z } from "zod";
+import { ConfigSchema } from "@/lib/configSchema";
+import { extensionCategories, getFileExtension } from "@/lib/utils/file";
 
 const configVersion = "2.3";
 
 // Parse the config file (YAML to JSON)
 const parseConfig = (content: string) => {
-  const document = YAML.parseDocument(content, { strict: false, prettyErrors: false });
+  const document = YAML.parseDocument(content, {
+    strict: false,
+    prettyErrors: false,
+  });
 
-  let errors = document.errors.map(error => {
+  const errors = document.errors.map((error) => {
     return {
       severity: "error",
       from: error.pos ? error.pos[0] : null,
@@ -26,7 +29,7 @@ const parseConfig = (content: string) => {
       yaml: error,
     };
   });
-  
+
   return { document, errors };
 };
 
@@ -38,9 +41,15 @@ const normalizeConfig = (configObject: any) => {
   const configObjectCopy = JSON.parse(JSON.stringify(configObject));
 
   // Resolve component references in `components`
-  if (configObjectCopy.components && typeof configObjectCopy.components === 'object') {
+  if (
+    configObjectCopy.components &&
+    typeof configObjectCopy.components === "object"
+  ) {
     Object.keys(configObjectCopy.components).forEach((componentKey: string) => {
-      configObjectCopy.components[componentKey] = resolveComponent(configObjectCopy.components[componentKey], configObjectCopy.components);
+      configObjectCopy.components[componentKey] = resolveComponent(
+        configObjectCopy.components[componentKey],
+        configObjectCopy.components
+      );
     });
   }
 
@@ -48,19 +57,26 @@ const normalizeConfig = (configObject: any) => {
     if (typeof configObjectCopy.media === "string") {
       // Ensure media.input is a relative path (and add name and label)
       const relativePath = configObjectCopy.media.replace(/^\/|\/$/g, "");
-      configObjectCopy.media = [{
-        name: "default",
-        label: "Media",
-        input: relativePath,
-        output: `/${relativePath}`,
-      }];
-    } else if (typeof configObjectCopy.media === "object" && !Array.isArray(configObjectCopy.media)) {
+      configObjectCopy.media = [
+        {
+          name: "default",
+          label: "Media",
+          input: relativePath,
+          output: `/${relativePath}`,
+        },
+      ];
+    } else if (
+      typeof configObjectCopy.media === "object" &&
+      !Array.isArray(configObjectCopy.media)
+    ) {
       // Ensure it's an array of media configurations (and add name and label)
-      configObjectCopy.media = [{
-        name: "default",
-        label: "Media",
-        ...configObjectCopy.media
-      }];
+      configObjectCopy.media = [
+        {
+          name: "default",
+          label: "Media",
+          ...configObjectCopy.media,
+        },
+      ];
     }
 
     // We normalize each media configuration
@@ -69,7 +85,11 @@ const normalizeConfig = (configObject: any) => {
         // Make sure input is relative
         mediaConfig.input = mediaConfig.input.replace(/^\/|\/$/g, "");
       }
-      if (mediaConfig.output != null && mediaConfig.output !== "/" && typeof mediaConfig.output === "string") {
+      if (
+        mediaConfig.output != null &&
+        mediaConfig.output !== "/" &&
+        typeof mediaConfig.output === "string"
+      ) {
         // Make sure output doesn"t have a trailing slash
         mediaConfig.output = mediaConfig.output.replace(/\/$/, "");
       }
@@ -80,7 +100,9 @@ const normalizeConfig = (configObject: any) => {
           mediaConfig.extensions = [];
           mediaConfig.categories.map((category: string) => {
             if (extensionCategories[category] != null) {
-              mediaConfig.extensions = mediaConfig.extensions.concat(extensionCategories[category]);
+              mediaConfig.extensions = mediaConfig.extensions.concat(
+                extensionCategories[category]
+              );
             }
           });
           delete mediaConfig.categories;
@@ -92,7 +114,11 @@ const normalizeConfig = (configObject: any) => {
   }
 
   // Normalize content
-  if (configObjectCopy.content && Array.isArray(configObjectCopy?.content) && configObjectCopy.content.length > 0) {
+  if (
+    configObjectCopy.content &&
+    Array.isArray(configObjectCopy?.content) &&
+    configObjectCopy.content.length > 0
+  ) {
     configObjectCopy.content = configObjectCopy.content.map((item: any) => {
       if (item.path != null) {
         item.path = item.path.replace(/^\/|\/$/g, "");
@@ -106,7 +132,22 @@ const normalizeConfig = (configObject: any) => {
       }
       if (item.format == null) {
         item.format = "raw";
-        const codeExtensions = ["yaml", "yml", "javascript", "js", "jsx", "typescript", "ts", "tsx", "json", "html", "htm", "markdown", "md", "mdx"];
+        const codeExtensions = [
+          "yaml",
+          "yml",
+          "javascript",
+          "js",
+          "jsx",
+          "typescript",
+          "ts",
+          "tsx",
+          "json",
+          "html",
+          "htm",
+          "markdown",
+          "md",
+          "mdx",
+        ];
         if (item.fields?.length > 0) {
           switch (item.extension) {
             case "json":
@@ -134,17 +175,17 @@ const normalizeConfig = (configObject: any) => {
       if (item.view?.node && typeof item.view.node === "string") {
         item.view.node = {
           filename: item.view.node,
-          hideDirs: "nodes"
+          hideDirs: "nodes",
         };
       }
-      
+
       // Process content fields to resolve component references
       if (Array.isArray(item.fields)) {
-        item.fields = item.fields.map((field: any) => {
-          return resolveComponent(field, configObjectCopy?.components);
-        });
+        item.fields = item.fields.map((field: any) =>
+          resolveComponent(field, configObjectCopy?.components)
+        );
       }
-      
+
       return item;
     });
   }
@@ -153,15 +194,15 @@ const normalizeConfig = (configObject: any) => {
   if (configObjectCopy.settings === false) {
     configObjectCopy.settings = { hide: true };
   }
-  
+
   return configObjectCopy;
-}
+};
 
 // Helper function to resolve component references in fields
 function resolveComponent(field: any, componentsMap: Record<string, any>): any {
   let result = JSON.parse(JSON.stringify(field));
 
-  if (result.component && typeof result.component === 'string') {
+  if (result.component && typeof result.component === "string") {
     const componentKey = result.component;
     const componentDef = componentsMap[componentKey];
 
@@ -170,36 +211,47 @@ function resolveComponent(field: any, componentsMap: Record<string, any>): any {
       const originalName = result.name;
       const componentType = componentCopy.type;
       delete result.component;
-      result = mergeWith({}, componentCopy, result, (objValue: any, srcValue: any) => {
-        if (Array.isArray(srcValue)) {
-          return srcValue;
+      result = mergeWith(
+        {},
+        componentCopy,
+        result,
+        (objValue: any, srcValue: any) => {
+          if (Array.isArray(srcValue)) {
+            return srcValue;
+          }
         }
-      });
+      );
       result.name = originalName;
       result.type = componentType;
     } else {
-      console.error(`Component reference "${componentKey}" could not be resolved.`);
+      console.error(
+        `Component reference "${componentKey}" could not be resolved.`
+      );
       delete result.component; // Remove the broken reference
     }
   }
 
   // Default to `type: object` if fields exist and type is missing
-  if (Array.isArray(result.fields) && result.fields.length > 0 && result.type === undefined) {
-    result.type = 'object';
+  if (
+    Array.isArray(result.fields) &&
+    result.fields.length > 0 &&
+    result.type === undefined
+  ) {
+    result.type = "object";
   }
 
   // Nested fields
   if (Array.isArray(result.fields)) {
-    result.fields = result.fields.map((nestedField: any) => {
-      return resolveComponent(nestedField, componentsMap);
-    });
+    result.fields = result.fields.map((nestedField: any) =>
+      resolveComponent(nestedField, componentsMap)
+    );
   }
 
   // Nested blocks
   if (Array.isArray(result.blocks)) {
-    result.blocks = result.blocks.map((block: any) => {
-      return resolveComponent(block, componentsMap);
-    });
+    result.blocks = result.blocks.map((block: any) =>
+      resolveComponent(block, componentsMap)
+    );
   }
 
   return result;
@@ -207,12 +259,12 @@ function resolveComponent(field: any, componentsMap: Record<string, any>): any {
 
 // Check if the config contains unresolved component references
 function containsUnresolvedComponent(data: any): boolean {
-  if (Array.isArray(data)) return data.some(item => containsUnresolvedComponent(item));
-  if (data && typeof data === 'object') {
-    if (typeof data.component === 'string') return true; 
-    if (Array.isArray(data.fields)) {
-      if (containsUnresolvedComponent(data.fields)) return true;
-    }
+  if (Array.isArray(data))
+    return data.some((item) => containsUnresolvedComponent(item));
+  if (data && typeof data === "object") {
+    if (typeof data.component === "string") return true;
+    if (Array.isArray(data.fields) && containsUnresolvedComponent(data.fields))
+      return true;
   }
   return false;
 }
@@ -221,30 +273,34 @@ function containsUnresolvedComponent(data: any): boolean {
 // This is used in the settings editor.
 const validateConfig = (document: YAML.Document.Parsed) => {
   const content = document.toJSON();
-  let errors: any[] = [];
+  const errors: any[] = [];
 
   try {
     ConfigSchema.parse(content);
   } catch (zodError: any) {
     if (zodError instanceof z.ZodError) {
-      zodError.errors.forEach(error => {
-        processZodError(error, document, errors);    
+      zodError.errors.forEach((error) => {
+        processZodError(error, document, errors);
       });
     }
   }
-  
+
   return errors;
 };
 
 // Process the Zod errors from the validateConfig function. Helps us display errors
 // in the settings editor.
-const processZodError = (error: any, document: YAML.Document.Parsed, errors: any[]) => {
+const processZodError = (
+  error: any,
+  document: YAML.Document.Parsed,
+  errors: any[]
+) => {
   let path = error.path;
   let yamlNode: any = document.getIn(path, true);
   let range = [0, 0];
 
   switch (error.code) {
-    case "invalid_union":
+    case "invalid_union": {
       let invalidUnionCount = 0;
       let invalidUnionMessage = "";
       error.unionErrors.forEach((unionError: any) => {
@@ -273,10 +329,14 @@ const processZodError = (error: any, document: YAML.Document.Parsed, errors: any
         });
       }
       break;
+    }
 
     case "unrecognized_keys":
       error.keys.forEach((key: string) => {
-        const parentNode = yamlNode && yamlNode.items && yamlNode.items.find((item: any) => item.key.value === key);
+        const parentNode =
+          yamlNode &&
+          yamlNode.items &&
+          yamlNode.items.find((item: any) => item.key.value === key);
         if (parentNode) {
           // TODO: investigate why/when parentNode isn't defined, we may want to leave to YAML parser error
           errors.push({
@@ -313,4 +373,10 @@ const parseAndValidateConfig = (content: string) => {
   return { document, parseErrors, validationErrors };
 };
 
-export { configVersion, parseConfig, normalizeConfig, validateConfig, parseAndValidateConfig };
+export {
+  configVersion,
+  parseConfig,
+  normalizeConfig,
+  validateConfig,
+  parseAndValidateConfig,
+};

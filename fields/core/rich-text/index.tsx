@@ -1,25 +1,23 @@
-import { Field } from "@/types/field";
-import { htmlSwapPrefix, rawToRelativeUrls } from "@/lib/githubImage";
-import { EditComponent } from "./edit-component";
-import { ViewComponent } from "./view-component";
+import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import { marked } from "marked";
 import TurndownService from "turndown";
-import { tables, strikethrough } from "joplin-turndown-plugin-gfm";
-import { getSchemaByName } from "@/lib/schema";
 import { z } from "zod";
+import { htmlSwapPrefix, rawToRelativeUrls } from "@/lib/githubImage";
+import { getSchemaByName } from "@/lib/schema";
+import type { Field } from "@/types/field";
+import { EditComponent } from "./edit-component";
+import { ViewComponent } from "./view-component";
 
 const read = (value: any, field: Field, config: Record<string, any>) => {
-  let html = field.options?.format === "html"
-    ? value
-    : value
-      ? marked(value)
-      : value;
+  const html =
+    field.options?.format === "html" ? value : value ? marked(value) : value;
 
-  const mediaConfig = (config?.object?.media?.length && field.options?.media !== false)
-    ? field.options?.media && typeof field.options.media === 'string'
-      ? getSchemaByName(config.object, field.options.media, "media")
-      : config.object.media[0]
-    : undefined;
+  const mediaConfig =
+    config?.object?.media?.length && field.options?.media !== false
+      ? field.options?.media && typeof field.options.media === "string"
+        ? getSchemaByName(config.object, field.options.media, "media")
+        : config.object.media[0]
+      : undefined;
 
   if (!mediaConfig) return html;
 
@@ -27,15 +25,21 @@ const read = (value: any, field: Field, config: Record<string, any>) => {
 };
 
 const write = (value: any, field: Field, config: Record<string, any>) => {
-  let content = value || '';
+  let content = value || "";
 
-  content = rawToRelativeUrls(config.owner, config.repo, config.branch, content);
+  content = rawToRelativeUrls(
+    config.owner,
+    config.repo,
+    config.branch,
+    content
+  );
 
-  const mediaConfig = (config?.object?.media?.length && field.options?.media !== false)
-    ? field.options?.media && typeof field.options.media === 'string'
-      ? getSchemaByName(config.object, field.options.media, "media")
-      : config.object.media[0]
-    : undefined;
+  const mediaConfig =
+    config?.object?.media?.length && field.options?.media !== false
+      ? field.options?.media && typeof field.options.media === "string"
+        ? getSchemaByName(config.object, field.options.media, "media")
+        : config.object.media[0]
+      : undefined;
 
   if (mediaConfig) {
     content = htmlSwapPrefix(content, mediaConfig.input, mediaConfig.output);
@@ -44,23 +48,22 @@ const write = (value: any, field: Field, config: Record<string, any>) => {
   if (field.options?.format !== "html") {
     const turndownService = new TurndownService({
       headingStyle: "atx",
-      codeBlockStyle: "fenced"
+      codeBlockStyle: "fenced",
     });
     turndownService.use([tables, strikethrough]);
     turndownService.addRule("retain-html", {
-      filter: (node: any, options: any) => (
-        (
-          node.nodeName === "IMG" && (node.getAttribute("width") || node.getAttribute("height"))
-        ) ||
-        (
-          ["P", "DIV", "H1", "H2", "H3", "H4", "H5", "H6"].includes(node.nodeName) && (node.getAttribute("style") || node.getAttribute("class"))
-        )
-      ),
-      replacement: (content: string, node: any, options: any) => node.outerHTML
+      filter: (node: any, options: any) =>
+        (node.nodeName === "IMG" &&
+          (node.getAttribute("width") || node.getAttribute("height"))) ||
+        (["P", "DIV", "H1", "H2", "H3", "H4", "H5", "H6"].includes(
+          node.nodeName
+        ) &&
+          (node.getAttribute("style") || node.getAttribute("class"))),
+      replacement: (content: string, node: any, options: any) => node.outerHTML,
     });
 
     // We need to strip <colgroup> and <col> tags otherwise turndown won't convert tables
-    content = content.replace(/<colgroup>.*?<\/colgroup>/g, '');
+    content = content.replace(/<colgroup>.*?<\/colgroup>/g, "");
 
     content = turndownService.turndown(content);
   }
@@ -70,18 +73,29 @@ const write = (value: any, field: Field, config: Record<string, any>) => {
 
 const schema = (field: Field, configObject?: Record<string, any>) => {
   let zodSchema = z.string();
-  
+
   if (field.required) zodSchema = zodSchema.min(1, "This field is required");
   if (field.pattern) {
     if (typeof field.pattern === "string") {
       zodSchema = zodSchema.regex(new RegExp(field.pattern), "Invalid format");
     } else {
-      zodSchema = zodSchema.regex(new RegExp(field.pattern.regex), field.pattern.message || "Invalid pattern format");
+      zodSchema = zodSchema.regex(
+        new RegExp(field.pattern.regex),
+        field.pattern.message || "Invalid pattern format"
+      );
     }
   }
-  if (field.options?.minlength) zodSchema = zodSchema.min(field.options.minlength as number, `Minimum length is ${field.options.minlength} characters`);
-  if (field.options?.maxlength) zodSchema = zodSchema.max(field.options.maxlength as number, `Maximum length is ${field.options.maxlength} characters`);
-  
+  if (field.options?.minlength)
+    zodSchema = zodSchema.min(
+      field.options.minlength as number,
+      `Minimum length is ${field.options.minlength} characters`
+    );
+  if (field.options?.maxlength)
+    zodSchema = zodSchema.max(
+      field.options.maxlength as number,
+      `Maximum length is ${field.options.maxlength} characters`
+    );
+
   return zodSchema;
 };
 

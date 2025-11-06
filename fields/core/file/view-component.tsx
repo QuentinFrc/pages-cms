@@ -1,34 +1,30 @@
 "use client";
 
-import { useMemo } from "react";
-import { Field } from "@/types/field";
 import { File } from "lucide-react";
+import { useMemo } from "react";
 import { getFileName } from "@/lib/utils/file";
+import type { Field } from "@/types/field";
 
-const ViewComponent = ({
-  value,
-  field
-}: {
-  value: string;
-  field: Field;
-}) => {
+const ViewComponent = ({ value, field }: { value: string; field: Field }) => {
   const extraValuesCount = value && Array.isArray(value) ? value.length - 1 : 0;
 
-  const filename = useMemo(() => {
-    return !value
-      ? null
-      : Array.isArray(value)
-        ? getFileName(value[0])
-        : getFileName(value);
-  }, [value]);
+  const filename = useMemo(
+    () =>
+      value
+        ? Array.isArray(value)
+          ? getFileName(value[0])
+          : getFileName(value)
+        : null,
+    [value]
+  );
 
   if (!filename) return null;
 
   return (
     <span className="flex items-center gap-x-1.5">
-      <span className="inline-flex rounded-full border px-2 py-0.5 text-sm font-medium items-center gap-x-1.5">
-        <File className="w-3 h-3 shrink-0"/>
-        <span className="text-ellipsis overflow-hidden whitespace-nowrap">
+      <span className="inline-flex items-center gap-x-1.5 rounded-full border px-2 py-0.5 font-medium text-sm">
+        <File className="h-3 w-3 shrink-0" />
+        <span className="overflow-hidden text-ellipsis whitespace-nowrap">
           {filename}
         </span>
       </span>
@@ -39,6 +35,6 @@ const ViewComponent = ({
       )}
     </span>
   );
-}
+};
 
 export { ViewComponent };

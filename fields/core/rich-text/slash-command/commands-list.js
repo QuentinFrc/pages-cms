@@ -1,6 +1,12 @@
-import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from "react";
-import { Button } from "@/components/ui/button";
 import { Ban } from "lucide-react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const CommandsList = forwardRef(({ items, command }, ref) => {
@@ -15,10 +21,12 @@ const CommandsList = forwardRef(({ items, command }, ref) => {
     if (event.key === "ArrowUp") {
       setSelectedIndex((selectedIndex + items.length - 1) % items.length);
       return true;
-    } else if (event.key === "ArrowDown") {
+    }
+    if (event.key === "ArrowDown") {
       setSelectedIndex((selectedIndex + 1) % items.length);
       return true;
-    } else if (event.key === "Enter") {
+    }
+    if (event.key === "Enter") {
       selectItem(selectedIndex);
       return true;
     }
@@ -39,23 +47,29 @@ const CommandsList = forwardRef(({ items, command }, ref) => {
   }));
 
   return (
-    <div ref={containerRef} className="border rounded-md bg-popover p-1 flex flex-col gap-y-0.5 shadow-md">
+    <div
+      className="flex flex-col gap-y-0.5 rounded-md border bg-popover p-1 shadow-md"
+      ref={containerRef}
+    >
       {items.length ? (
         items.map((item, index) => (
           <Button
+            className={cn(
+              "justify-start gap-x-1.5",
+              index === selectedIndex ? "bg-muted" : ""
+            )}
             key={index}
+            onClick={() => selectItem(index)}
             size="xs"
             variant="ghost"
-            className={cn("justify-start gap-x-1.5", index === selectedIndex ? "bg-muted" : "")}
-            onClick={() => selectItem(index)}
           >
             <span>{item.icon}</span>
             {item.title}
           </Button>
         ))
       ) : (
-        <div className="flex items-center text-sm text-muted-foreground gap-x-1.5 h-8 px-2">
-          <Ban className="h-4 w-4"/>
+        <div className="flex h-8 items-center gap-x-1.5 px-2 text-muted-foreground text-sm">
+          <Ban className="h-4 w-4" />
           No result
         </div>
       )}

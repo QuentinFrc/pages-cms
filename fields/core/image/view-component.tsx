@@ -2,25 +2,16 @@
 
 import { useMemo } from "react";
 import { Thumbnail } from "@/components/thumbnail";
-import { Field } from "@/types/field";
 import { useConfig } from "@/contexts/config-context";
+import type { Field } from "@/types/field";
 
-const ViewComponent = ({
-  value,
-  field
-}: {
-  value: string;
-  field: Field;
-}) => {
+const ViewComponent = ({ value, field }: { value: string; field: Field }) => {
   const extraValuesCount = value && Array.isArray(value) ? value.length - 1 : 0;
 
-  const path = useMemo(() => {
-    return !value
-      ? null
-      : Array.isArray(value)
-        ? value[0]
-        : value;
-  }, [value]);
+  const path = useMemo(
+    () => (value ? (Array.isArray(value) ? value[0] : value) : null),
+    [value]
+  );
 
   const { config } = useConfig();
 
@@ -28,7 +19,7 @@ const ViewComponent = ({
 
   return (
     <span className="flex items-center gap-x-1.5">
-      <Thumbnail name={mediaName} path={path} className="w-8 rounded-md"/>
+      <Thumbnail className="w-8 rounded-md" name={mediaName} path={path} />
       {extraValuesCount > 0 && (
         <span className="text-muted-foreground text-xs">
           +{extraValuesCount}
@@ -36,6 +27,6 @@ const ViewComponent = ({
       )}
     </span>
   );
-}
+};
 
 export { ViewComponent };

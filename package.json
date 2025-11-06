@@ -12,7 +12,8 @@
     "build": "next build",
     "postbuild": "npm run db:migrate",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "pnpm ultracite check",
+    "lint:fix": "pnpm ultracite fix",
     "db:generate": "npx drizzle-kit generate",
     "db:migrate": "npx drizzle-kit migrate",
     "db:clear-cache": "npx tsx db/scripts/clear-cache.ts"

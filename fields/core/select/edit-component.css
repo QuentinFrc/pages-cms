@@ -48,7 +48,7 @@
 }
 
 .react-select__multi-value__remove {
-  @apply  !py-1 !px-1 !text-foreground !opacity-50 hover:!opacity-100 !bg-transparent !transition-opacity;
+  @apply !py-1 !px-1 !text-foreground !opacity-50 hover:!opacity-100 !bg-transparent !transition-opacity;
 }
 
 .react-select__menu {

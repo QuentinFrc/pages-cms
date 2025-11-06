@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
-import { getAuth } from "@/lib/auth";
 import { SignIn } from "@/components/sign-in";
+import { getAuth } from "@/lib/auth";
 
-export default async function Page() {  
+export default async function Page() {
   const { session } = await getAuth();
   if (session) return redirect("/");
 
-	return (
-    <SignIn/>
-  );
+  return <SignIn />;
 }

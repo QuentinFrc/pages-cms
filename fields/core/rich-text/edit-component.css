@@ -75,7 +75,7 @@
 }
 
 .tiptap p.is-empty::before {
-  @apply text-muted-foreground float-left	h-0 pointer-events-none	content-[attr(data-placeholder)];
+  @apply text-muted-foreground float-left h-0 pointer-events-none content-[attr(data-placeholder)];
 }
 
 .tiptap p > img + .ProseMirror-separator,
@@ -97,7 +97,7 @@
 }
 
 .tiptap img.ProseMirror-selectednode {
-  @apply ring-2 ring-ring ring-offset-2 ring-offset-background ;
+  @apply ring-2 ring-ring ring-offset-2 ring-offset-background;
 }
 
 .tippy-box {

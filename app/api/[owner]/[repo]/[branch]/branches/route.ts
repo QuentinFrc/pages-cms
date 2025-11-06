@@ -1,18 +1,18 @@
-import { createOctokitInstance } from "@/lib/utils/octokit";
 import { getAuth } from "@/lib/auth";
 import { getToken } from "@/lib/token";
+import { createOctokitInstance } from "@/lib/utils/octokit";
 
 /**
  * Creates a new branch in a GitHub repository.
- * 
+ *
  * POST /api/[owner]/[repo]/[branch]/branches
- * 
+ *
  * Requires authentication.
  */
 
 export async function POST(
   request: Request,
-  { params }: { params: { owner: string, repo: string, branch: string } }
+  { params }: { params: { owner: string; repo: string; branch: string } }
 ) {
   try {
     const { user, session } = await getAuth();

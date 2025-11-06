@@ -1,6 +1,6 @@
-import { Toaster } from "@/components/ui/sonner"
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -18,8 +18,8 @@ export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {  
-	return (
+}>) {
+  return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
@@ -28,7 +28,7 @@ export default async function RootLayout({
         )}
       >
         {children}
-        <Toaster/>
+        <Toaster />
       </body>
     </html>
   );
