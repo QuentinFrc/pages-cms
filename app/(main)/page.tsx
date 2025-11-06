@@ -2,6 +2,7 @@
 
 import { Github } from "lucide-react";
 import { useState } from "react";
+import { siteConfig } from "@/config";
 import { Message } from "@/components/message";
 import { RepoLatest } from "@/components/repo/repo-latest";
 import { RepoSelect } from "@/components/repo/repo-select";
@@ -20,7 +21,7 @@ export default function Page() {
 
   return (
     <MainRootLayout>
-      <div className="mx-auto max-w-screen-sm space-y-6 p-4 md:p-6">
+      <div className="mx-auto max-w-screen-sm space-y-6">
         {user.accounts.length > 0 ? (
           <>
             <h2 className="font-semibold text-lg tracking-tight md:text-2xl">
@@ -45,7 +46,7 @@ export default function Page() {
         ) : user.githubId ? (
           <Message
             className="absolute inset-0"
-            description="You must install the GitHub application for the accounts you want to use Pages CMS with."
+            description={`You must install the GitHub application for the accounts you want to use ${siteConfig.name} with.`}
             title="Install the GitHub app"
           >
             <form action={handleAppInstall}>

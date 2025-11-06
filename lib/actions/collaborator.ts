@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { Resend } from "resend";
 import { z } from "zod";
+import { siteConfig } from "@/config";
 import { InviteEmailTemplate } from "@/components/email/invite";
 import { db } from "@/db";
 import { collaboratorTable } from "@/db/schema";
@@ -88,7 +89,7 @@ const handleAddCollaborator = async (prevState: any, formData: FormData) => {
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL!,
       to: [email],
-      subject: `Join "${owner}/${repo}" on Pages CMS`,
+      subject: `Join "${owner}/${repo}" on ${siteConfig.name}`,
       react: InviteEmailTemplate({
         inviteUrl,
         repoName: `${formData.get("owner")}/${formData.get("repo")}`,

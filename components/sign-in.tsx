@@ -4,6 +4,7 @@ import { Github } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useActionState } from "react";
 import { toast } from "sonner";
+import { siteConfig } from "@/config";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { handleEmailSignIn, handleGithubSignIn } from "@/lib/actions/auth";
@@ -33,7 +34,7 @@ export function SignIn() {
     <div className="flex h-screen items-center justify-center p-4 md:p-6">
       <div className="w-full space-y-6 sm:max-w-[340px]">
         <h1 className="text-center font-semibold text-xl tracking-tight lg:text-2xl">
-          Sign in to Pages CMS
+          Sign in to {siteConfig.name}
         </h1>
         <form action={handleGithubSignIn}>
           <SubmitButton className="w-full" type="submit">
@@ -70,7 +71,7 @@ export function SignIn() {
           By clicking continue, you agree to our{" "}
           <a
             className="underline hover:decoration-muted-foreground/50"
-            href="https://pagescms.org/terms"
+            href={siteConfig.links.terms}
             rel="noopener"
             target="_blank"
           >
@@ -79,7 +80,7 @@ export function SignIn() {
           and{" "}
           <a
             className="underline hover:decoration-muted-foreground/50"
-            href="https://pagescms.org/privacy"
+            href={siteConfig.links.privacy}
             rel="noopener"
             target="_blank"
           >

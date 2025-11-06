@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { siteConfig } from "@/config";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -7,11 +8,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: {
-    template: "%s | Pages CMS",
-    default: "Pages CMS",
-  },
-  description: "The No-Hassle CMS for GitHub",
+  title: siteConfig.metadata.title,
+  description: siteConfig.description,
 };
 
 export default async function RootLayout({
