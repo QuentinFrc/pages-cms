@@ -118,7 +118,7 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
           .map((template: any) => (
             <Dialog key={template.repository}>
               <DialogTrigger asChild>
-                <button className="overflow-hidden rounded-md border ring-offset-background transition-colors hover:cursor-pointer hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                <button className="overflow-hidden rounded-md border ring-offset-background transition-colors hover:cursor-pointer hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   <img
                     alt={`Preview for ${template.name}`}
                     className="aspect-video"
@@ -143,7 +143,7 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
                     </DialogDescription>
                   </DialogHeader>
                   <a
-                    className="relative flex items-center overflow-hidden rounded-lg border outline-none transition-all hover:bg-accent focus:bg-accent"
+                    className="relative flex items-center overflow-hidden rounded-lg border outline-hidden transition-all hover:bg-accent focus:bg-accent"
                     href={`https://github.com/${template.repository}`}
                     target="_blank"
                   >

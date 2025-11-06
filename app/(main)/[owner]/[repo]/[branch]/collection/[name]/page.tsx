@@ -31,7 +31,7 @@ export default function Page(
   const path = searchParams.get("path") || "";
 
   return (
-    <div className="mx-auto flex max-w-screen-xl flex-1 flex-col">
+    <div className="mx-auto flex max-w-(--breakpoint-xl) flex-1 flex-col">
       <header className="mb-6 flex items-center">
         <h1 className="font-semibold text-lg md:text-2xl">
           {schema.label || schema.name}{" "}

@@ -792,7 +792,7 @@ const EntryForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit, handleError)}>
-        <div className="mx-auto flex w-full max-w-screen-xl gap-x-8">
+        <div className="mx-auto flex w-full max-w-(--breakpoint-xl) gap-x-8">
           <div className="w-0 flex-1">
             <header className="mb-6 flex items-center">
               {navigateBack && (

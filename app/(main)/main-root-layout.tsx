@@ -1,13 +1,11 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import { BookOpen, Github, LayoutDashboard, Settings2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Github, LayoutDashboard, Settings2 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { siteConfig } from "@/config";
 import { About } from "@/components/about";
-import { User } from "@/components/user";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +22,8 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { User } from "@/components/user";
+import { siteConfig } from "@/config";
 
 type NavItem = {
   title: string;
@@ -84,7 +84,7 @@ export function MainRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" variant="inset">
-        <SidebarHeader className="border-b border-sidebar-border">
+        <SidebarHeader className="border-sidebar-border border-b">
           <Link
             className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             href="/"
@@ -104,7 +104,7 @@ export function MainRootLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent>
           <SidebarNavigation pathname={pathname} />
         </SidebarContent>
-        <SidebarFooter className="mt-auto border-t border-sidebar-border">
+        <SidebarFooter className="mt-auto border-sidebar-border border-t">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -113,11 +113,7 @@ export function MainRootLayout({ children }: { children: React.ReactNode }) {
                 tooltip="Read the documentation"
                 variant="outline"
               >
-                <a
-                  href={siteConfig.links.docs}
-                  rel="noopener"
-                  target="_blank"
-                >
+                <a href={siteConfig.links.docs} rel="noopener" target="_blank">
                   <BookOpen className="size-4" />
                   <span>Documentation</span>
                 </a>
@@ -145,7 +141,7 @@ export function MainRootLayout({ children }: { children: React.ReactNode }) {
         <SidebarRail />
       </Sidebar>
       <SidebarInset className="bg-background">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
           <SidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2 md:hidden">
             <Image

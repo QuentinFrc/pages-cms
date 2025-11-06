@@ -1,8 +1,7 @@
 "use client";
 
-import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import "./edit-component.css";
 import { ChevronDown, X } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import Select, { components } from "react-select";
 import AsyncSelect from "react-select/async";
 import AsyncCreatableSelect from "react-select/async-creatable";

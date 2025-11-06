@@ -30,7 +30,7 @@ export function EntryHistoryBlock({
       <div className="flex flex-col gap-y-1 text-sm">
         {history.slice(0, 3).map((item: any) => (
           <a
-            className="flex items-center rounded-lg px-3 py-2 ring-offset-background transition-all hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex items-center rounded-lg px-3 py-2 ring-offset-background transition-all hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             href={item.html_url}
             key={item.sha}
             target="_blank"
@@ -60,7 +60,7 @@ export function EntryHistoryBlock({
         ))}
         {history.length > 3 && (
           <a
-            className="flex items-center rounded-lg px-3 py-2 ring-offset-background transition-all hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex items-center rounded-lg px-3 py-2 ring-offset-background transition-all hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             href={`https://github.com/${config?.owner}/${config?.repo}/commits/${encodeURIComponent(config!.branch)}/${path}`}
             target="_blank"
           >

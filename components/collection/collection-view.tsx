@@ -313,7 +313,7 @@ export function CollectionView({
           meta: {
             className:
               field.name === primaryField
-                ? "truncate w-full min-w-[12rem] max-w-[1px]"
+                ? "truncate w-full min-w-48 max-w-px"
                 : "",
           },
           cell: ({ cell, row }: { cell: any; row: any }) => {
@@ -338,7 +338,7 @@ export function CollectionView({
               );
             }
             return (
-              <div className="w-full max-w-[12rem] truncate">{CellView}</div>
+              <div className="w-full max-w-48 truncate">{CellView}</div>
             );
           },
           sortUndefined: schema.view?.foldersFirst ? "first" : "last",
@@ -591,7 +591,7 @@ export function CollectionView({
               <td className="h-14 pr-3 pl-0 align-middle">
                 <Skeleton className="h-8 w-8 rounded-md" />
               </td>
-              <td className="h-14 w-full min-w-[12rem] max-w-[1px] px-3 align-middle">
+              <td className="h-14 w-full min-w-48 max-w-px px-3 align-middle">
                 <Skeleton className="h-5 w-full rounded" />
               </td>
               <td className="h-14 px-3 align-middle">

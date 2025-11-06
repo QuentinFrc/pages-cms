@@ -108,7 +108,7 @@ export function RepoBranches() {
                 branch === config?.branch
                   ? "cursor-default bg-accent"
                   : "hover:bg-accent",
-                "inline-flex items-center rounded-lg px-3 py-2 ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                "inline-flex items-center rounded-lg px-3 py-2 ring-offset-background transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               )}
               href={`/${owner}/${repo}/${encodeURIComponent(branch)}`}
               key={branch}

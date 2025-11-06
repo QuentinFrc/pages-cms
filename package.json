@@ -104,6 +104,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.4",
     "@next/bundle-analyzer": "16.0.1",
+    "@tailwindcss/postcss": "^4.1.17",
     "@types/lodash.merge": "^4.6.9",
     "@types/lodash.mergewith": "^4.6.9",
     "@types/node": "^20.12.8",
@@ -114,12 +115,10 @@
     "lint-staged": "^16.2.6",
     "npm": "^10.8.1",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3",
+    "tailwindcss": "^4.1.17",
     "typescript": "^5.4.5",
     "ultracite": "6.3.0",
-    "uninstall": "^0.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.1"
+    "uninstall": "^0.0.0"
   },
   "packageManager": "pnpm@10.15.1",
   "lint-staged": {

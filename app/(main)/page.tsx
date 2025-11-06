@@ -21,7 +21,7 @@ export default function Page() {
 
   return (
     <MainRootLayout>
-      <div className="mx-auto max-w-screen-sm space-y-6">
+      <div className="mx-auto max-w-(--breakpoint-sm) space-y-6">
         {user.accounts.length > 0 ? (
           <>
             <h2 className="font-semibold text-lg tracking-tight md:text-2xl">

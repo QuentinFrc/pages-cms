@@ -28,7 +28,7 @@ export default async function Page() {
 
   return (
     <MainRootLayout>
-      <div className="mx-auto max-w-screen-sm space-y-6">
+      <div className="mx-auto max-w-(--breakpoint-sm) space-y-6">
         <Link
           className={cn(
             buttonVariants({ variant: "outline", size: "xs" }),

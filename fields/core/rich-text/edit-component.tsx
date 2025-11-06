@@ -11,15 +11,6 @@ import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
-import {
-  MediaDialog,
-  type MediaDialogHandle,
-} from "@/components/media/media-dialog";
-import { useConfig } from "@/contexts/config-context";
-import { useRepo } from "@/contexts/repo-context";
-import { getRawUrl, relativeToRawUrls } from "@/lib/githubImage";
-import "./edit-component.css";
 import {
   AlignCenter,
   AlignJustify,
@@ -43,7 +34,12 @@ import {
   Trash2,
   Underline as UnderlineIcon,
 } from "lucide-react";
+import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  MediaDialog,
+  type MediaDialogHandle,
+} from "@/components/media/media-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -59,6 +55,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useConfig } from "@/contexts/config-context";
+import { useRepo } from "@/contexts/repo-context";
+import { getRawUrl, relativeToRawUrls } from "@/lib/githubImage";
 import { getSchemaByName } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 import { extensionCategories, normalizePath } from "@/lib/utils/file";
@@ -278,7 +277,7 @@ const EditComponent = forwardRef((props: any, ref) => {
   return (
     <>
       <Skeleton
-        className={cn("h-[8.5rem] rounded-md", isContentReady ? "hidden" : "")}
+        className={cn("h-34 rounded-md", isContentReady ? "hidden" : "")}
       />
       <div className={isContentReady ? "" : "hidden"}>
         {editor && (
@@ -291,7 +290,7 @@ const EditComponent = forwardRef((props: any, ref) => {
             }}
           >
             <div
-              className="flex items-center gap-x-[1px] rounded-md border bg-popover p-1 shadow-md focus-visible:outline-none"
+              className="flex items-center gap-x-px rounded-md border bg-popover p-1 shadow-md focus-visible:outline-hidden"
               ref={bubbleMenuRef}
             >
               <DropdownMenu>
