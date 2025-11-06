@@ -16,18 +16,17 @@ import { getFileExtension, normalizePath } from "@/lib/utils/file";
 
 export async function GET(
   request: Request,
-  {
-    params,
-  }: {
-    params: {
+  props: {
+    params: Promise<{
       owner: string;
       repo: string;
       branch: string;
       name: string;
       path: string;
-    };
+    }>;
   }
 ) {
+  const params = await props.params;
   try {
     const { user, session } = await getAuth();
     if (!session) return new Response(null, { status: 401 });

@@ -1,16 +1,18 @@
-"use client";
+"use client";;
+import { use } from "react";
 
 import { useSearchParams } from "next/navigation";
 import { MediaView } from "@/components/media/media-view";
 import { useConfig } from "@/contexts/config-context";
 
-export default function Page({
-  params,
-}: {
-  params: {
-    name: string;
-  };
-}) {
+export default function Page(
+  props: {
+    params: Promise<{
+      name: string;
+    }>;
+  }
+) {
+  const params = use(props.params);
   const searchParams = useSearchParams();
   const path = searchParams.get("path") || "";
 

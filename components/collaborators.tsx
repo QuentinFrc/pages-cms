@@ -1,8 +1,7 @@
 "use client";
 
 import { Ban, Loader, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useFormState } from "react-dom";
+import { useCallback, useEffect, useMemo, useState, useActionState } from "react";
 import { toast } from "sonner";
 import { Message } from "@/components/message";
 import { SubmitButton } from "@/components/submit-button";
@@ -42,7 +41,7 @@ export function Collaborators({
 }) {
   // TODO: add support for branches and accounts collaborators
   const [collaborators, setCollaborators] = useState<any[]>([]);
-  const [addCollaboratorState, addCollaboratorAction] = useFormState(
+  const [addCollaboratorState, addCollaboratorAction] = useActionState(
     handleAddCollaborator,
     { message: "", data: [] }
   );

@@ -9,13 +9,24 @@ import { getToken } from "@/lib/token";
 import { getConfig, saveConfig, updateConfig } from "@/lib/utils/config";
 import { createOctokitInstance } from "@/lib/utils/octokit";
 
-export default async function Layout({
-  children,
-  params: { owner, repo, branch },
-}: {
-  children: React.ReactNode;
-  params: { owner: string; repo: string; branch: string };
-}) {
+export default async function Layout(
+  props: {
+    children: React.ReactNode;
+    params: Promise<{ owner: string; repo: string; branch: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    owner,
+    repo,
+    branch
+  } = params;
+
+  const {
+    children
+  } = props;
+
   const { session, user } = await getAuth();
   if (!session) return redirect("/sign-in");
 

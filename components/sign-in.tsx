@@ -2,15 +2,14 @@
 
 import { Github } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useRef, useActionState } from "react";
 import { toast } from "sonner";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { handleEmailSignIn, handleGithubSignIn } from "@/lib/actions/auth";
 
 export function SignIn() {
-  const [emailSignInState, emailSignInAction] = useFormState(
+  const [emailSignInState, emailSignInAction] = useActionState(
     handleEmailSignIn,
     { message: "" }
   );

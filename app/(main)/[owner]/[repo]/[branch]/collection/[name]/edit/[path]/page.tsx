@@ -1,21 +1,22 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, use } from "react";
 import { EntryEditor } from "@/components/entry/entry-editor";
 import { useConfig } from "@/contexts/config-context";
 import { getSchemaByName } from "@/lib/schema";
 
-export default function Page({
-  params,
-}: {
-  params: {
-    owner: string;
-    repo: string;
-    branch: string;
-    name: string;
-    path: string;
-  };
-}) {
+export default function Page(
+  props: {
+    params: Promise<{
+      owner: string;
+      repo: string;
+      branch: string;
+      name: string;
+      path: string;
+    }>;
+  }
+) {
+  const params = use(props.params);
   const { config } = useConfig();
   if (!config) throw new Error("Configuration not found.");
 

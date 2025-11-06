@@ -3,13 +3,14 @@ import { SignInFromInvite } from "@/components/sign-in-from-invite";
 import { getTokenData } from "@/lib/actions/auth";
 import { getAuth } from "@/lib/auth";
 
-export default async function Page({
-  params,
-  searchParams,
-}: {
-  params: { token: string };
-  searchParams: { redirect?: string };
-}) {
+export default async function Page(
+  props: {
+    params: Promise<{ token: string }>;
+    searchParams: Promise<{ redirect?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { user } = await getAuth();
 
   if (!params.token) {

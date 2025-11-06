@@ -77,7 +77,7 @@ const handleGithubSignIn = async () => {
     scopes: ["repo", "user:email"],
   });
 
-  cookies().set("github_oauth_state", state, {
+  (await cookies()).set("github_oauth_state", state, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
@@ -96,7 +96,7 @@ const handleSignOut = async () => {
   await lucia.invalidateSession(session.id);
 
   const sessionCookie = lucia.createBlankSessionCookie();
-  cookies().set(
+  (await cookies()).set(
     sessionCookie.name,
     sessionCookie.value,
     sessionCookie.attributes
@@ -156,7 +156,7 @@ const handleSignInWithToken = async (token: string, redirectTo?: string) => {
   // await lucia.invalidateUserSessions(userId);
   const session = await lucia.createSession(userId, {});
   const sessionCookie = lucia.createSessionCookie(session.id);
-  cookies().set(
+  (await cookies()).set(
     sessionCookie.name,
     sessionCookie.value,
     sessionCookie.attributes
@@ -176,7 +176,7 @@ const handleSignOutAndSignIn = async (token: string, redirectTo?: string) => {
   await lucia.invalidateSession(session.id);
 
   const sessionCookie = lucia.createBlankSessionCookie();
-  cookies().set(
+  (await cookies()).set(
     sessionCookie.name,
     sessionCookie.value,
     sessionCookie.attributes

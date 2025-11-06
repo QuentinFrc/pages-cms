@@ -2,8 +2,7 @@
 
 import { ArrowUpRight, ChevronsUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useFormState } from "react-dom";
+import { useCallback, useEffect, useRef, useState, useActionState } from "react";
 import { toast } from "sonner";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,7 @@ export function RepoTemplates({ defaultAccount }: { defaultAccount?: any }) {
   const router = useRouter();
   const dialogCloseRef = useRef<any>(null);
 
-  const [copyTemplateState, copyTemplateAction] = useFormState(
+  const [copyTemplateState, copyTemplateAction] = useActionState(
     handleCopyTemplate,
     {
       message: "",
