@@ -1,5 +1,6 @@
 import mergeWith from "lodash.mergewith";
 import type { NextRequest } from "next/server";
+import { siteConfig } from "@/config";
 import { writeFns } from "@/fields/registry";
 import { getAuth } from "@/lib/auth";
 import { configVersion, normalizeConfig, parseConfig } from "@/lib/config";
@@ -335,8 +336,8 @@ const githubSaveFile = async (
       repo,
       path,
       message: sha
-        ? `Update ${path} (via Pages CMS)`
-        : `Create ${path} (via Pages CMS)`,
+        ? `Update ${path} (via ${siteConfig.name})`
+        : `Create ${path} (via ${siteConfig.name})`,
       content: contentBase64,
       branch,
       sha: sha || undefined,
@@ -385,7 +386,7 @@ const githubSaveFile = async (
             owner,
             repo,
             path: newPath,
-            message: `Create ${newPath} (via Pages CMS)`,
+            message: `Create ${newPath} (via ${siteConfig.name})`,
             content: contentBase64,
             branch,
           });
@@ -491,7 +492,7 @@ export async function DELETE(
       branch: params.branch,
       path: params.path,
       sha,
-      message: `Delete ${params.path} (via Pages CMS)`,
+      message: `Delete ${params.path} (via ${siteConfig.name})`,
     });
 
     // Update cache after successful deletion

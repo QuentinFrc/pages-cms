@@ -55,7 +55,7 @@ export function User({
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="max-w-[12.5rem]" forceMount>
+      <DropdownMenuContent align="start" className="max-w-50" forceMount>
         <DropdownMenuLabel>
           {user?.githubId ? (
             <>

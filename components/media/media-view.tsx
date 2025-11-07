@@ -232,7 +232,7 @@ const MediaView = ({
       <ul className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         <li>
           <div className="flex aspect-video items-center justify-center text-muted">
-            <Folder className="h-[5.5rem] w-[5.5rem] animate-pulse stroke-[0.5]" />
+            <Folder className="h-22 w-22 animate-pulse stroke-[0.5]" />
           </div>
           <div className="flex items-center justify-center p-2">
             <div className="h-9 overflow-hidden">
@@ -369,11 +369,11 @@ const MediaView = ({
                   <li key={item.path}>
                     {item.type === "dir" ? (
                       <button
-                        className="block w-full rounded-md outline-none hover:bg-muted focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+                        className="block w-full rounded-md outline-hidden hover:bg-muted focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
                         onClick={() => handleNavigate(item.path)}
                       >
                         <div className="flex aspect-video items-center justify-center">
-                          <Folder className="h-[5.5rem] w-[5.5rem] stroke-[0.5]" />
+                          <Folder className="h-22 w-22 stroke-[0.5]" />
                         </div>
                         <div className="flex items-center justify-center p-2">
                           <div className="h-9 overflow-hidden">
@@ -442,7 +442,7 @@ const MediaView = ({
                           </div>
                           {onSelect && selected.includes(item.path) && (
                             <div className="absolute top-2 left-2 rounded-full bg-primary p-0.5 text-primary-foreground">
-                              <Check className="h-3 w-3 stroke-[3]" />
+                              <Check className="h-3 w-3 stroke-3" />
                             </div>
                           )}
                         </div>

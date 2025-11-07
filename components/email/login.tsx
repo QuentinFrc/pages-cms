@@ -12,6 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { siteConfig } from "@/config";
 
 export const LoginEmailTemplate = ({
   url,
@@ -29,24 +30,24 @@ export const LoginEmailTemplate = ({
   return (
     <Html>
       <Head />
-      <Preview>Sign in to Pages CMS</Preview>
+      <Preview>Sign in to {siteConfig.name}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white px-2 font-sans antialiased">
           <Container className="mx-auto my-[40px] max-w-[465px] rounded p-[20px]">
             <Section className="mt-[24px]">
               <Img
-                alt="Pages CMS"
+                alt={siteConfig.assets.logo.alt}
                 className="mx-auto my-0"
                 height="36"
-                src={`${baseUrl}/images/email-logo.png`}
+                src={`${baseUrl}${siteConfig.assets.emailLogo}`}
                 width="36"
               />
             </Section>
             <Heading className="mx-0 my-[30px] p-0 text-center font-semibold text-[#0a0a0a] text-[24px] tracking-tight">
-              Sign in to Pages CMS
+              Sign in to {siteConfig.name}
             </Heading>
             <Text className="text-[#0a0a0a] text-[16px] leading-[24px]">
-              Click the button below to sign in to Pages CMS:
+              Click the button below to sign in to {siteConfig.name}:
             </Text>
             <Section className="mt-[24px] mb-[24px] text-center">
               <Button

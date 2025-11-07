@@ -13,6 +13,7 @@ import { sha256 } from "oslo/crypto";
 import { encodeHex } from "oslo/encoding";
 import { Resend } from "resend";
 import { z } from "zod";
+import { siteConfig } from "@/config";
 import { LoginEmailTemplate } from "@/components/email/login";
 import { db } from "@/db";
 import { emailLoginTokenTable, userTable } from "@/db/schema";
@@ -55,7 +56,7 @@ const handleEmailSignIn = async (prevState: any, formData: FormData) => {
   const { data, error } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to: [email],
-    subject: "Sign in link for Pages CMS",
+    subject: `Sign in link for ${siteConfig.name}`,
     react: LoginEmailTemplate({
       url: loginUrl,
       email,

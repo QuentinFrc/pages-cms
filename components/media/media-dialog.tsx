@@ -82,7 +82,7 @@ const MediaDialog = forwardRef(
     return (
       <Dialog onOpenChange={setOpen} open={open}>
         {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-        <DialogContent className="h-[calc(100vh-6rem)] w-full grid-rows-[auto_minmax(0,1fr)_auto] sm:w-[calc(100vw-6rem)] sm:max-w-screen-xl">
+        <DialogContent className="h-[calc(100vh-6rem)] w-full grid-rows-[auto_minmax(0,1fr)_auto] sm:w-[calc(100vw-6rem)] sm:max-w-(--breakpoint-xl)">
           <DialogHeader>
             <DialogTitle>Select images</DialogTitle>
             <DialogDescription />

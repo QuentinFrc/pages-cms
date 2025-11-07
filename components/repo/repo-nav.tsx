@@ -24,7 +24,7 @@ const RepoNavItem = ({
   <Link
     className={cn(
       active ? "bg-accent" : "hover:bg-accent",
-      "flex items-center rounded-lg px-3 py-2 font-medium outline-none focus:bg-accent"
+      "flex items-center rounded-lg px-3 py-2 font-medium outline-hidden focus:bg-accent"
     )}
     href={href}
     onClick={onClick}

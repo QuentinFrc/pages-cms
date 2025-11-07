@@ -12,7 +12,6 @@ import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
 import { forwardRef, useMemo } from "react";
-import "./edit-component.css";
 
 // TODO: implement minlength and maxlength
 

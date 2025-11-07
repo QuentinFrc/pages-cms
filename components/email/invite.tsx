@@ -12,6 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { siteConfig } from "@/config";
 
 export const InviteEmailTemplate = ({
   email,
@@ -43,15 +44,15 @@ export const InviteEmailTemplate = ({
           <Container className="mx-auto my-[40px] max-w-[465px] rounded p-[20px]">
             <Section className="mt-[24px]">
               <Img
-                alt="Pages CMS"
+                alt={siteConfig.assets.logo.alt}
                 className="mx-auto my-0"
                 height="36"
-                src={`${baseUrl}/images/email-logo.png`}
+                src={`${baseUrl}${siteConfig.assets.emailLogo}`}
                 width="36"
               />
             </Section>
             <Heading className="mx-0 my-[30px] p-0 text-center font-semibold text-[#0a0a0a] text-[24px] tracking-tight">
-              Join &quot;{repoName}&quot; on Pages CMS
+              Join &quot;{repoName}&quot; on {siteConfig.name}
             </Heading>
             <Text className="text-[#0a0a0a] text-[16px] leading-[24px]">
               <Link
@@ -60,8 +61,8 @@ export const InviteEmailTemplate = ({
               >
                 {invitedByName}
               </Link>{" "}
-              has invited you to the &quot;{repoName}&quot; project on Pages
-              CMS. Use the following link to start collaborating:
+              has invited you to the &quot;{repoName}&quot; project on {siteConfig.name}.
+              Use the following link to start collaborating:
             </Text>
             <Section className="mt-[24px] mb-[24px] text-center">
               <Button

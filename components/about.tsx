@@ -1,6 +1,7 @@
 "use client";
 
 import { Book, Chrome, CircleHelp, Github } from "lucide-react";
+import { siteConfig } from "@/config";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,21 +24,21 @@ export function About({ onClick }: { onClick?: () => void }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
-            <Button size="icon" variant="ghost">
+            <Button onClick={onClick} size="icon" variant="ghost">
               <CircleHelp className="h-4 w-4" />
-              <span className="sr-only">About Pages CMS</span>
+              <span className="sr-only">About {siteConfig.name}</span>
             </Button>
           </DialogTrigger>
         </TooltipTrigger>
-        <TooltipContent>About Pages CMS</TooltipContent>
+        <TooltipContent>About {siteConfig.name}</TooltipContent>
       </Tooltip>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>About Pages CMS</DialogTitle>
+          <DialogTitle>About {siteConfig.name}</DialogTitle>
           <DialogDescription>
-            Pages CMS is an Open Source Content Management System built for
-            static websites (Jekyll, Next.js, VuePress, Hugo, etc). It allows
-            you to edit your website&apos;s content directly on GitHub via a
+            {siteConfig.name} is an Open Source Content Management System built
+            for static websites (Jekyll, Next.js, VuePress, Hugo, etc). It
+            allows you to edit your website&apos;s content directly on GitHub via a
             user-friendly interface.
           </DialogDescription>
         </DialogHeader>
@@ -47,7 +48,7 @@ export function About({ onClick }: { onClick?: () => void }) {
               buttonVariants({ variant: "outline", size: "sm" }),
               "w-full"
             )}
-            href="https://pagescms.org"
+            href={siteConfig.links.website}
             rel="noopener"
             target="_blank"
           >
@@ -59,7 +60,7 @@ export function About({ onClick }: { onClick?: () => void }) {
               buttonVariants({ variant: "outline", size: "sm" }),
               "w-full"
             )}
-            href="https://pagescms.org/docs"
+            href={siteConfig.links.docs}
             rel="noopener"
             target="_blank"
           >
@@ -71,7 +72,7 @@ export function About({ onClick }: { onClick?: () => void }) {
               buttonVariants({ variant: "outline", size: "sm" }),
               "w-full"
             )}
-            href="https://github.com/pages-cms/pages-cms"
+            href={siteConfig.links.github}
             rel="noopener"
             target="_blank"
           >
