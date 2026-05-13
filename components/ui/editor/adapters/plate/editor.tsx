@@ -3,30 +3,67 @@
 /**
  * Plate-based rich-text editor (Slate under the hood).
  *
- * v1 scope:
- * - Markdown round-trip via @platejs/markdown (serializeMd / deserializeMd).
+ * Plugins wired:
  * - Basic blocks (paragraph, headings, blockquote, code block) and basic
  *   marks (bold, italic, underline, strikethrough, code, kbd, sub/sup).
- * - Read-only support via the `disabled` prop.
+ * - Links (paste autodetect + markdown autolink).
+ * - Lists (bulleted, numbered, task) with markdown shortcuts.
+ * - Tables with cell/row plugins registered.
+ * - Markdown round-trip via @platejs/markdown.
  *
- * Not yet wired (vs. the TipTap adapter):
- * - Image upload / paste-drop / picker. The image-related props on
- *   `AdapterEditorProps` are accepted but ignored. Implementing this would
- *   require introducing a Plate image plugin and a serialization-friendly
- *   way to track upload state.
- * - Tables, links, slash commands, bubble menu. These rely on additional
- *   Plate plugins and UI; they can be layered on top of this adapter.
- * - The `format: "html"` mode. Plate's serializers here target markdown only.
+ * Not yet wired — these are *UI* gaps, not capability gaps. The underlying
+ * Plate plugins exist; we just haven't shipped the components that drive
+ * them:
+ * - Slash command menu: SlashInputPlugin needs a `SlashInputElement` UI
+ *   component to render the popover. Add via the Plate UI generator
+ *   (`npx shadcn add slash-kit`) or hand-write.
+ * - Image upload / media picker. The current rich-text wrapper expects the
+ *   adapter to expose an imperative `editor` handle to insert images from
+ *   the MediaDialog; Plate's ImagePlugin + `uploadImage` config can replace
+ *   that path once we generalize the wrapper's image hooks.
+ * - Bubble / floating toolbar. Plate ships a FloatingToolbar UI but it
+ *   needs to be installed as a generated component.
+ * - The `format: "html"` mode. Plate's serializers here target markdown.
  */
 
 import { useEffect, useRef } from "react";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 import { MarkdownPlugin, deserializeMd, serializeMd } from "@platejs/markdown";
 import { BasicBlocksPlugin, BasicMarksPlugin } from "@platejs/basic-nodes/react";
+import { LinkPlugin } from "@platejs/link/react";
+import {
+  BulletedListPlugin,
+  ListItemContentPlugin,
+  ListItemPlugin,
+  ListPlugin,
+  NumberedListPlugin,
+  TaskListPlugin,
+} from "@platejs/list-classic/react";
+import {
+  TableCellHeaderPlugin,
+  TableCellPlugin,
+  TablePlugin,
+  TableRowPlugin,
+} from "@platejs/table/react";
 import { cn } from "@/lib/utils";
 import type { AdapterEditorProps } from "../../types";
 
-const plugins = [BasicBlocksPlugin, BasicMarksPlugin, MarkdownPlugin];
+const plugins = [
+  BasicBlocksPlugin,
+  BasicMarksPlugin,
+  LinkPlugin,
+  ListPlugin,
+  BulletedListPlugin,
+  NumberedListPlugin,
+  TaskListPlugin,
+  ListItemPlugin,
+  ListItemContentPlugin,
+  TablePlugin,
+  TableRowPlugin,
+  TableCellPlugin,
+  TableCellHeaderPlugin,
+  MarkdownPlugin,
+];
 
 export function Editor({
   value = "",
