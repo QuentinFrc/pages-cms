@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useFormContext } from "react-hook-form";
 import { createPortal } from "react-dom";
-import { Editor, type ImagePickerContext } from "@/components/ui/editor";
+import { Editor, type EditorAdapter, type ImagePickerContext } from "@/components/ui/editor";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -51,6 +51,7 @@ type MediaSchema = {
 };
 
 type FieldOptions = {
+  editor?: EditorAdapter;
   format?: "html" | "markdown";
   switcher?: boolean;
   media?: false | string;
@@ -333,6 +334,7 @@ const EditComponent = forwardRef(
     const options = field?.options ?? {};
     const isReadonly = Boolean(field?.readonly);
     const format = options.format === "html" ? "html" : "markdown";
+    const editorAdapter: EditorAdapter = options.editor === "plate" ? "plate" : "tiptap";
     const showSwitcher = options.switcher !== false;
     const canonicalValue = typeof value === "string" ? value : "";
     const [labelSlotEl, setLabelSlotEl] = useState<HTMLElement | null>(null);
@@ -886,6 +888,7 @@ const EditComponent = forwardRef(
             <Skeleton className="h-40 w-full rounded-md" />
           ) : (
             <Editor
+              adapter={editorAdapter}
               value={editorValue}
               onChange={(nextValue) => {
                 if (nextValue === syncedEditorValueRef.current) return;
