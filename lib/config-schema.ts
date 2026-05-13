@@ -889,4 +889,33 @@ const ConfigSchema = z
   })
   .nullable();
 
+type Config = NonNullable<z.infer<typeof ConfigSchema>>;
+type Settings = Config["settings"];
+type MediaConfig = z.infer<typeof MediaSchema>;
+type NamedMedia = z.infer<typeof NamedMediaConfig>;
+type ContentLeaf = z.infer<typeof ContentLeafSchema>;
+type ContentGroup = {
+  name: string;
+  label?: string;
+  description?: string | null;
+  type: "group";
+  items: ContentEntry[];
+};
+type ContentEntry = ContentLeaf | ContentGroup;
+type Action = z.infer<typeof ActionSchema>;
+type CommitTemplates = z.infer<typeof CommitTemplatesSchema>;
+type CommitIdentity = z.infer<typeof CommitIdentitySchema>;
+
 export { ConfigSchema };
+export type {
+  Config,
+  Settings,
+  MediaConfig,
+  NamedMedia,
+  ContentLeaf,
+  ContentGroup,
+  ContentEntry,
+  Action,
+  CommitTemplates,
+  CommitIdentity,
+};

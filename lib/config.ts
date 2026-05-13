@@ -10,7 +10,7 @@ import { ConfigSchema } from "@/lib/config-schema";
 import { z } from "zod";
 import mergeWith from "lodash.mergewith";
 
-const configVersion = "3.0";
+const configVersion = "3.1";
 
 type NavigationNode = {
   type: "group" | "file" | "collection" | "media";

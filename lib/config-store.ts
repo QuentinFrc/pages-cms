@@ -2,12 +2,17 @@
  * Persist and synchronize repository configuration between GitHub and the DB.
  */
 
-import { Config } from "@/types/config";
+import { Config, ConfigSource } from "@/types/config";
 import { db } from "@/db";
 import { configTable } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
-import { createOctokitInstance } from "@/lib/utils/octokit";
-import { configVersion, normalizeConfig, parseConfig } from "@/lib/config";
+import { configVersion } from "@/lib/config";
+import { loadConfigFromGithub } from "@/lib/config-source";
+
+const asConfigSource = (value: string | null | undefined): ConfigSource | null => {
+  if (value === "ts" || value === "js" || value === "mjs" || value === "yaml") return value;
+  return null;
+};
 
 const getConfigFromDb = async (
   owner: string,
@@ -26,13 +31,14 @@ const getConfigFromDb = async (
   
   if (!config) return null;
 
-  const parsedConfig = {
+  const parsedConfig: Config = {
     owner: config.owner,
     repo: config.repo,
     branch: config.branch,
     sha: config.sha,
     version: config.version,
     object: JSON.parse(config.object),
+    source: asConfigSource(config.source),
     lastCheckedAt: config.lastCheckedAt,
   };
 
@@ -49,6 +55,7 @@ const saveConfig = async (
     sha: config.sha,
     version: config.version,
     object: JSON.stringify(config.object),
+    source: config.source ?? null,
     lastCheckedAt: new Date(),
   }).onConflictDoUpdate({
     target: [configTable.owner, configTable.repo, configTable.branch],
@@ -56,6 +63,7 @@ const saveConfig = async (
       sha: config.sha,
       version: config.version,
       object: JSON.stringify(config.object),
+      source: config.source ?? null,
       lastCheckedAt: new Date(),
     },
   });
@@ -70,6 +78,7 @@ const updateConfig = async (
     sha: config.sha,
     version: config.version,
     object: JSON.stringify(config.object),
+    source: config.source ?? null,
     lastCheckedAt: new Date(),
   }).where(
     and(
@@ -128,38 +137,8 @@ const fetchConfigFromGithub = async (
   repo: string,
   branch: string,
   token: string,
-): Promise<Pick<Config, "sha" | "object"> | null> => {
-  const octokit = createOctokitInstance(token);
-  try {
-    const response = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path: ".pages.yml",
-      ref: branch,
-      headers: { Accept: "application/vnd.github.v3+json" },
-    });
-
-    if (Array.isArray(response.data)) {
-      throw new Error("Expected .pages.yml to be a file but found a directory.");
-    }
-    if (response.data.type !== "file") {
-      throw new Error("Invalid .pages.yml response type.");
-    }
-
-    const configFile = Buffer.from(response.data.content, "base64").toString();
-    const parsed = parseConfig(configFile);
-    const configObject = normalizeConfig(parsed.document.toJSON());
-
-    return {
-      sha: response.data.sha,
-      object: configObject,
-    };
-  } catch (error: any) {
-    if (error?.status === 404 && error?.response?.data?.message === "Not Found") {
-      return null;
-    }
-    throw error;
-  }
+): Promise<Pick<Config, "sha" | "object" | "source"> | null> => {
+  return loadConfigFromGithub(owner, repo, branch, token);
 };
 
 const getConfig = async (
@@ -200,6 +179,7 @@ const getConfig = async (
         sha: latest.sha,
         version: configVersion ?? "0.0",
         object: latest.object,
+        source: latest.source ?? null,
       };
       await saveConfig(nextConfig);
       return nextConfig;
@@ -237,7 +217,7 @@ const getConfig = async (
             );
             return;
           }
-          if (cachedConfig.sha === latest.sha) {
+          if (cachedConfig.sha === latest.sha && cachedConfig.source === (latest.source ?? null)) {
             await touchConfigCheck(owner, repo, branch);
             return;
           }
@@ -248,6 +228,7 @@ const getConfig = async (
             sha: latest.sha,
             version: configVersion ?? "0.0",
             object: latest.object,
+            source: latest.source ?? null,
           };
           await updateConfig(nextConfig);
         } catch {
@@ -275,7 +256,12 @@ const getConfig = async (
       return null;
     }
 
-    if (cachedConfig && cachedConfig.version === configVersion && cachedConfig.sha === latest.sha) {
+    if (
+      cachedConfig &&
+      cachedConfig.version === configVersion &&
+      cachedConfig.sha === latest.sha &&
+      cachedConfig.source === (latest.source ?? null)
+    ) {
       await touchConfigCheck(normalizedOwner, normalizedRepo, branch);
       return {
         ...cachedConfig,
@@ -290,6 +276,7 @@ const getConfig = async (
       sha: latest.sha,
       version: configVersion ?? "0.0",
       object: latest.object,
+      source: latest.source ?? null,
     };
 
     if (cachedConfig) {

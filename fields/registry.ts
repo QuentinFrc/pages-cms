@@ -23,6 +23,23 @@ type FieldModule = {
   ViewComponent?: React.ComponentType<any>;
 };
 
+const coreFieldTypes = [
+  "boolean",
+  "code",
+  "date",
+  "file",
+  "image",
+  "number",
+  "reference",
+  "rich-text",
+  "select",
+  "string",
+  "text",
+  "uuid",
+] as const;
+
+type CoreFieldType = typeof coreFieldTypes[number];
+
 const fieldTypes = new Set<string>();
 const labels: Record<string, string> = {};
 const schemas: Record<string, (field: Field, configObject?: Record<string, any>) => z.ZodTypeAny> = {};
@@ -57,4 +74,5 @@ registerField("string", stringField);
 registerField("text", textField);
 registerField("uuid", uuidField);
 
-export { labels, schemas, readFns, writeFns, defaultValues, editComponents, viewComponents, fieldTypes };
+export { labels, schemas, readFns, writeFns, defaultValues, editComponents, viewComponents, fieldTypes, coreFieldTypes };
+export type { CoreFieldType };
