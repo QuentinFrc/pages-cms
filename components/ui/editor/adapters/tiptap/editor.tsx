@@ -42,6 +42,7 @@ import type {
   ImageUploadHandler,
   ImageUploadResult,
   RichTextEditorAdapter,
+  RichTextEditorHandle,
 } from "../../types";
 
 const DEFAULT_MAX_IMAGE_BYTES = 1_000_000;
@@ -218,10 +219,16 @@ export function Editor({
   maxImageBytes = DEFAULT_MAX_IMAGE_BYTES,
   onRequestImage,
   onPendingUploadsChange,
+  onReady,
   className,
   editorClassName,
   ...props
 }: AdapterEditorProps) {
+  const handleRef = useRef<RichTextEditorHandle | null>(null);
+  const onReadyRef = useRef(onReady);
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [showTableActions, setShowTableActions] = useState(false);
   const [showAltInput, setShowAltInput] = useState(false);
@@ -362,6 +369,37 @@ export function Editor({
       onChange(nextValue);
     },
   });
+
+  useEffect(() => {
+    if (!editor) {
+      if (handleRef.current) {
+        handleRef.current = null;
+        onReadyRef.current?.(null);
+      }
+      return;
+    }
+    const handle: RichTextEditorHandle = {
+      insertImages: (srcs) => {
+        if (!srcs.length) return;
+        const content = srcs.map((src) => ({ type: "image", attrs: { src } }));
+        editor.chain().focus().insertContent(content).run();
+      },
+      focus: () => {
+        editor.commands.focus();
+      },
+      blur: () => {
+        editor.commands.blur();
+      },
+    };
+    handleRef.current = handle;
+    onReadyRef.current?.(handle);
+    return () => {
+      if (handleRef.current === handle) {
+        handleRef.current = null;
+        onReadyRef.current?.(null);
+      }
+    };
+  }, [editor]);
 
   const activeState = (useEditorState({
     editor,

@@ -9,6 +9,7 @@ import { Editor } from "./editor";
 const tiptapAdapter: RichTextEditorAdapter = {
   id: "tiptap",
   label: "TipTap (ProseMirror)",
+  supportedFormats: ["markdown", "html"],
   Editor,
 };
 

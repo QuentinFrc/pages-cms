@@ -10,7 +10,12 @@ import {
 } from "react";
 import { useFormContext } from "react-hook-form";
 import { createPortal } from "react-dom";
-import { Editor, type EditorAdapter, type ImagePickerContext } from "@/components/ui/editor";
+import {
+  Editor,
+  type EditorAdapter,
+  type ImagePickerContext,
+  type RichTextEditorHandle,
+} from "@/components/ui/editor";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -52,7 +57,7 @@ type MediaSchema = {
 
 type FieldOptions = {
   editor?: EditorAdapter;
-  format?: "html" | "markdown";
+  format?: "html" | "markdown" | "mdx";
   switcher?: boolean;
   media?: false | string;
   path?: string;
@@ -333,7 +338,12 @@ const EditComponent = forwardRef(
 
     const options = field?.options ?? {};
     const isReadonly = Boolean(field?.readonly);
-    const format = options.format === "html" ? "html" : "markdown";
+    const format: "html" | "markdown" | "mdx" =
+      options.format === "html"
+        ? "html"
+        : options.format === "mdx"
+          ? "mdx"
+          : "markdown";
     const editorAdapter: EditorAdapter = options.editor === "plate" ? "plate" : "tiptap";
     const showSwitcher = options.switcher !== false;
     const canonicalValue = typeof value === "string" ? value : "";
@@ -354,6 +364,7 @@ const EditComponent = forwardRef(
     const transformSeqRef = useRef(0);
     const mediaDialogRef = useRef<MediaDialogHandle>(null);
     const imageSubmitInFlightRef = useRef(false);
+    const richTextHandleRef = useRef<RichTextEditorHandle | null>(null);
     const pendingImageSelectionRef = useRef<{
       context?: ImagePickerContext;
       resolve: (result: { kind: "url"; src: string } | null) => void;
@@ -703,7 +714,7 @@ const EditComponent = forwardRef(
         }
 
         return new Promise<{ kind: "url"; src: string } | null>((resolve) => {
-          context.editor.commands.blur();
+          richTextHandleRef.current?.blur();
           pendingImageSelectionRef.current = {
             context,
             resolve,
@@ -725,22 +736,16 @@ const EditComponent = forwardRef(
         }
         imageSubmitInFlightRef.current = true;
         try {
-          const pending = pendingImageSelectionRef.current;
           const sources = await Promise.all(
             images.map((image) => toDisplayImageUrl(image)),
           );
 
-          if (images.length === 1 || !pending?.context) {
+          if (images.length === 1 || !richTextHandleRef.current) {
             resolvePendingImageSelection({ kind: "url", src: sources[0] });
             return;
           }
 
-          const content = sources.map((src) => ({
-            type: "image",
-            attrs: { src },
-          }));
-
-          pending.context.editor.chain().focus().insertContent(content).run();
+          richTextHandleRef.current.insertImages(sources);
           resolvePendingImageSelection(null);
         } finally {
           imageSubmitInFlightRef.current = false;
@@ -889,6 +894,9 @@ const EditComponent = forwardRef(
           ) : (
             <Editor
               adapter={editorAdapter}
+              onReady={(handle) => {
+                richTextHandleRef.current = handle;
+              }}
               value={editorValue}
               onChange={(nextValue) => {
                 if (nextValue === syncedEditorValueRef.current) return;

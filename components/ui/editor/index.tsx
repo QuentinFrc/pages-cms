@@ -12,7 +12,12 @@
 "use client";
 
 import { useMemo } from "react";
-import type { EditorAdapter, EditorProps, RichTextEditorAdapter } from "./types";
+import type {
+  EditorAdapter,
+  EditorProps,
+  RichTextEditorAdapter,
+  RichTextFormat,
+} from "./types";
 import tiptapAdapter from "./adapters/tiptap";
 import plateAdapter from "./adapters/plate";
 
@@ -22,15 +27,35 @@ const adapters: Record<EditorAdapter, RichTextEditorAdapter> = {
 };
 
 const DEFAULT_ADAPTER: EditorAdapter = "tiptap";
+const DEFAULT_FORMAT: RichTextFormat = "markdown";
 
 const resolveAdapter = (adapter?: EditorAdapter): RichTextEditorAdapter => {
   if (adapter && adapters[adapter]) return adapters[adapter];
   return adapters[DEFAULT_ADAPTER];
 };
 
-export function Editor({ adapter, ...rest }: EditorProps) {
-  const { Editor: AdapterEditor } = useMemo(() => resolveAdapter(adapter), [adapter]);
-  return <AdapterEditor {...rest} />;
+const resolveFormat = (
+  resolved: RichTextEditorAdapter,
+  requested: RichTextFormat | undefined,
+): RichTextFormat => {
+  const target = requested ?? DEFAULT_FORMAT;
+  if (resolved.supportedFormats.includes(target)) return target;
+  if (typeof console !== "undefined") {
+    console.warn(
+      `[rich-text] Adapter "${resolved.id}" does not support format "${target}". Falling back to "${DEFAULT_FORMAT}".`,
+    );
+  }
+  return DEFAULT_FORMAT;
+};
+
+export function Editor({ adapter, format, ...rest }: EditorProps) {
+  const resolvedAdapter = useMemo(() => resolveAdapter(adapter), [adapter]);
+  const resolvedFormat = useMemo(
+    () => resolveFormat(resolvedAdapter, format),
+    [resolvedAdapter, format],
+  );
+  const AdapterEditor = resolvedAdapter.Editor;
+  return <AdapterEditor format={resolvedFormat} {...rest} />;
 }
 
 export const richTextEditorAdapters = adapters;
@@ -49,5 +74,7 @@ export type {
   ImageUploadHandler,
   ImageUploadResult,
   RichTextEditorAdapter,
+  RichTextFormat,
+  RichTextEditorHandle,
   SlashImageFallback,
 } from "./types";

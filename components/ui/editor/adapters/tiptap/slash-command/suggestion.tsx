@@ -4,46 +4,37 @@ import tippy, { type Instance as TippyInstance } from "tippy.js";
 import CommandsList, { type CommandsListHandle, type SlashItem } from "./commands-list";
 import { Code, Heading1, Heading2, Heading3, Image, List, ListOrdered, Pilcrow, Quote, Table } from "lucide-react";
 import type { SuggestionOptions as TiptapSuggestionOptions } from "@tiptap/suggestion";
+import type {
+  ImagePickerFileResult,
+  ImagePickerHandler,
+  ImagePickerResult,
+  SlashImageFallback,
+} from "../../../types";
 
-export type ImagePickerUrlResult = {
-  kind: "url";
-  src: string;
-  alt?: string;
-  title?: string;
-};
-
-export type ImagePickerFileResult = {
-  kind: "file";
-  file: File;
-  alt?: string;
-  title?: string;
-};
-
-export type ImagePickerResult = ImagePickerUrlResult | ImagePickerFileResult;
-
-export type ImagePickerContext = {
+/**
+ * Adapter-internal picker state. The wrapper-facing `ImagePickerContext`
+ * (exported from `components/ui/editor/types.ts`) is deliberately empty;
+ * editor + range are TipTap-specific and stay inside this module.
+ */
+type TiptapPickerInternals = {
   editor: Editor;
   range: { from: number; to: number };
 };
 
-export type ImagePickerHandler = (
-  context: ImagePickerContext,
-) => ImagePickerResult | null | Promise<ImagePickerResult | null>;
-
-export type SlashImageFallback = "prompt-url" | "none";
+type LocalImageFileContext = TiptapPickerInternals & Omit<ImagePickerFileResult, "kind">;
 
 type SuggestionOptions = {
   onRequestImage?: ImagePickerHandler | null;
-  onInsertLocalImageFile?: ((context: ImagePickerContext & Omit<ImagePickerFileResult, "kind">) => void | Promise<void>) | null;
+  onInsertLocalImageFile?: ((context: LocalImageFileContext) => void | Promise<void>) | null;
   enableImages?: boolean;
   imageSlashFallback?: SlashImageFallback;
 };
 
 const TABLE_SAFE_COMMANDS = new Set(["Image"]);
 
-type RequestImageAndInsertArgs = ImagePickerContext & {
+type RequestImageAndInsertArgs = TiptapPickerInternals & {
   onRequestImage: ImagePickerHandler | null;
-  onInsertLocalImageFile: ((context: ImagePickerContext & Omit<ImagePickerFileResult, "kind">) => void | Promise<void>) | null;
+  onInsertLocalImageFile: ((context: LocalImageFileContext) => void | Promise<void>) | null;
   imageSlashFallback: SlashImageFallback;
 };
 
@@ -58,7 +49,7 @@ const requestImageAndInsert = async ({
 
   let result: ImagePickerResult | null = null;
   if (onRequestImage) {
-    result = await onRequestImage({ editor, range });
+    result = await onRequestImage({});
   } else if (imageSlashFallback === "prompt-url") {
     const src = window.prompt("Image URL")?.trim();
     result = src ? { kind: "url", src } : null;
@@ -68,7 +59,7 @@ const requestImageAndInsert = async ({
 
   if (result.kind === "file") {
     if (!onInsertLocalImageFile) return;
-    const fileInsertContext: ImagePickerContext & Omit<ImagePickerFileResult, "kind"> = {
+    const fileInsertContext: LocalImageFileContext = {
       editor,
       range,
       file: result.file,

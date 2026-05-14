@@ -26,9 +26,9 @@
  * - The `format: "html"` mode. Plate's serializers here target markdown.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
-import { MarkdownPlugin, deserializeMd, serializeMd } from "@platejs/markdown";
+import { deserializeMd, serializeMd } from "@platejs/markdown";
 import { BasicBlocksPlugin, BasicMarksPlugin } from "@platejs/basic-nodes/react";
 import { LinkPlugin } from "@platejs/link/react";
 import {
@@ -46,9 +46,10 @@ import {
   TableRowPlugin,
 } from "@platejs/table/react";
 import { cn } from "@/lib/utils";
-import type { AdapterEditorProps } from "../../types";
+import type { AdapterEditorProps, RichTextEditorHandle, RichTextFormat } from "../../types";
+import { buildMarkdownPlugin } from "./serializer";
 
-const plugins = [
+const buildPlugins = (format: RichTextFormat) => [
   BasicBlocksPlugin,
   BasicMarksPlugin,
   LinkPlugin,
@@ -62,7 +63,7 @@ const plugins = [
   TableRowPlugin,
   TableCellPlugin,
   TableCellHeaderPlugin,
-  MarkdownPlugin,
+  buildMarkdownPlugin(format),
 ];
 
 export function Editor({
@@ -79,15 +80,21 @@ export function Editor({
   maxImageBytes: _maxImageBytes,
   onRequestImage: _onRequestImage,
   onPendingUploadsChange,
-  format: _format,
+  onReady,
+  format = "markdown",
   ...rest
 }: AdapterEditorProps) {
+  const plugins = useMemo(() => buildPlugins(format), [format]);
   const editor = usePlateEditor({
     plugins,
     value: ({ editor }) => deserializeMd(editor, value),
   });
 
   const lastEmittedRef = useRef(value);
+  const onReadyRef = useRef(onReady);
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
 
   // Sync external value changes back into the editor.
   useEffect(() => {
@@ -100,6 +107,27 @@ export function Editor({
   useEffect(() => {
     onPendingUploadsChange?.(0);
   }, [onPendingUploadsChange]);
+
+  // Surface an adapter handle to the wrapper. Image insertion is a no-op
+  // until Step 3 (Plate image upload) lands; the rest is wired.
+  useEffect(() => {
+    if (!editor) return;
+    const handle: RichTextEditorHandle = {
+      insertImages: () => {
+        // TODO: implement once @platejs/media ImagePlugin is wired.
+      },
+      focus: () => {
+        editor.tf.focus();
+      },
+      blur: () => {
+        editor.tf.blur();
+      },
+    };
+    onReadyRef.current?.(handle);
+    return () => {
+      onReadyRef.current?.(null);
+    };
+  }, [editor]);
 
   return (
     <div className={cn("relative", className)} {...rest}>
