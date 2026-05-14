@@ -42,6 +42,7 @@
     "@platejs/link": "^53.0.3",
     "@platejs/list-classic": "^53.0.0",
     "@platejs/markdown": "^53.0.4",
+    "@platejs/media": "^53.0.1",
     "@platejs/slash-command": "^53.0.0",
     "@platejs/table": "^53.0.0",
     "@react-email/components": "^1.0.7",

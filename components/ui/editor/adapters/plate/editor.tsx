@@ -45,11 +45,26 @@ import {
   TablePlugin,
   TableRowPlugin,
 } from "@platejs/table/react";
+import { ImagePlugin } from "@platejs/media/react";
+import { insertImage } from "@platejs/media";
 import { cn } from "@/lib/utils";
-import type { AdapterEditorProps, RichTextEditorHandle, RichTextFormat } from "../../types";
+import type {
+  AdapterEditorProps,
+  ImageUploadHandler,
+  RichTextEditorHandle,
+  RichTextFormat,
+} from "../../types";
 import { buildMarkdownPlugin } from "./serializer";
+import { ImageElement } from "./image-element";
+import { buildUploadImageCallback } from "./upload-bridge";
 
-const buildPlugins = (format: RichTextFormat) => [
+type BuildPluginsOptions = {
+  format: RichTextFormat;
+  onUploadImage?: ImageUploadHandler;
+  onPendingChange: (delta: 1 | -1) => void;
+};
+
+const buildPlugins = ({ format, onUploadImage, onPendingChange }: BuildPluginsOptions) => [
   BasicBlocksPlugin,
   BasicMarksPlugin,
   LinkPlugin,
@@ -63,6 +78,11 @@ const buildPlugins = (format: RichTextFormat) => [
   TableRowPlugin,
   TableCellPlugin,
   TableCellHeaderPlugin,
+  ImagePlugin.withComponent(ImageElement).configure({
+    options: {
+      uploadImage: buildUploadImageCallback({ onUploadImage, onPendingChange }),
+    },
+  }),
   buildMarkdownPlugin(format),
 ];
 
@@ -72,10 +92,9 @@ export function Editor({
   disabled = false,
   className,
   editorClassName,
-  // image-related props are accepted but ignored in v1
   enableImages: _enableImages,
   enableImagePasteDrop: _enableImagePasteDrop,
-  onUploadImage: _onUploadImage,
+  onUploadImage,
   imageFallback: _imageFallback,
   maxImageBytes: _maxImageBytes,
   onRequestImage: _onRequestImage,
@@ -84,7 +103,19 @@ export function Editor({
   format = "markdown",
   ...rest
 }: AdapterEditorProps) {
-  const plugins = useMemo(() => buildPlugins(format), [format]);
+  const pendingUploadsRef = useRef(0);
+  const onPendingChange = (delta: 1 | -1) => {
+    pendingUploadsRef.current = Math.max(0, pendingUploadsRef.current + delta);
+    onPendingUploadsChange?.(pendingUploadsRef.current);
+  };
+
+  const plugins = useMemo(
+    () => buildPlugins({ format, onUploadImage, onPendingChange }),
+    // onUploadImage and onPendingChange come from props/refs; rebuilding on
+    // every render would tear down the editor. Only refresh when format flips.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [format],
+  );
   const editor = usePlateEditor({
     plugins,
     value: ({ editor }) => deserializeMd(editor, value),
@@ -103,18 +134,16 @@ export function Editor({
     editor.tf.setValue(deserializeMd(editor, value));
   }, [value, editor]);
 
-  // Plate has no separate "pending uploads" concept here; report 0 once.
-  useEffect(() => {
-    onPendingUploadsChange?.(0);
-  }, [onPendingUploadsChange]);
-
-  // Surface an adapter handle to the wrapper. Image insertion is a no-op
-  // until Step 3 (Plate image upload) lands; the rest is wired.
+  // Surface an adapter handle to the wrapper.
   useEffect(() => {
     if (!editor) return;
     const handle: RichTextEditorHandle = {
-      insertImages: () => {
-        // TODO: implement once @platejs/media ImagePlugin is wired.
+      insertImages: (srcs) => {
+        if (!srcs.length) return;
+        editor.tf.focus();
+        for (const src of srcs) {
+          insertImage(editor, src);
+        }
       },
       focus: () => {
         editor.tf.focus();
