@@ -47,11 +47,13 @@ git clone https://github.com/pagescms/pagescms.git
 cd pagescms
 ```
 
-2. Start PostgreSQL locally:
+2. Start PostgreSQL locally (Docker Compose, data persisted in a volume):
 
 ```bash
-docker run --name pagescms-db -e POSTGRES_USER=pagescms -e POSTGRES_PASSWORD=pagescms -e POSTGRES_DB=pagescms -p 5432:5432 -d postgres:16
+npm run db:up
 ```
+
+Stop it later with `npm run db:down`.
 
 3. Install dependencies:
 
@@ -62,10 +64,13 @@ npm install
 4. Create `.env.local` with at least:
 
 ```bash
-DATABASE_URL=postgresql://pagescms:pagescms@localhost:5432/pagescms
 BETTER_AUTH_SECRET=your-random-secret
 CRYPTO_KEY=your-random-secret
 ```
+
+Non-secret development defaults (`DATABASE_URL`, `PORT`, `DB_*`) ship in
+the committed `.env.development` file; override them in `.env.local` if
+needed.
 
 Optional but useful:
 
@@ -86,21 +91,39 @@ Generate secrets with:
 openssl rand -base64 32
 ```
 
-5. Create your GitHub App with the helper:
+5. Start a public HTTPS tunnel (GitHub rejects `localhost` webhook URLs):
 
 ```bash
-npm run setup:github-app -- --base-url http://localhost:3000
+npm run tunnel
 ```
 
-Useful options:
+By default this is a Cloudflare quick tunnel (random URL on every start,
+requires [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)).
+For a stable URL, set `TUNNEL_HOSTNAME` in `.env.local` and create a
+named tunnel once — see the header of `scripts/dev-tunnel.mjs`.
 
+6. Create your GitHub App with the helper (in another terminal, with the
+tunnel running so its URL is used for the app):
+
+```bash
+npm run setup:github-app
+```
+
+The generated credentials are written to `.env.local`. Useful options:
+
+- `--base-url <url>` (defaults to the tunnel URL, else `http://localhost:$PORT`)
+- `--env <path>` (env file to update, default: `.env.local`)
+- `--print` (print the env vars instead of writing them)
 - `--owner-type personal|org`
 - `--org <slug>`
 - `--app-name "Pages CMS (local)"`
-- `--env .env.local`
 - `--no-open`
 
-6. Run database migrations:
+After creation, set "Email addresses" to "Read-only" under the app's
+account permissions (manifests cannot set account permissions), then
+install the app on your account.
+
+7. Run database migrations:
 
 ```bash
 npm run db:migrate
@@ -112,13 +135,22 @@ If cache state is known stale or corrupted, clear it with:
 npm run db:clear-cache
 ```
 
-7. Start the app:
+8. Start the app:
 
 ```bash
 npm run dev
 ```
 
-If you need GitHub webhooks to reach your local app, use a public tunnel URL as the helper `--base-url`.
+Or start the app and the tunnel together:
+
+```bash
+npm run dev:tunnel
+```
+
+While the tunnel runs, it keeps `BASE_URL` (via `.env.development.local`)
+and the GitHub App's webhook URL in sync. Set
+`DEV_REDIRECT_TO_BASE_URL=true` to redirect `localhost` to the tunnel URL
+so the app is always used from a single origin.
 
 For more detail, see:
 
