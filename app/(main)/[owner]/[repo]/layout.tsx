@@ -10,6 +10,8 @@ import { invalidateSessionForGithubAuthError } from "@/lib/github-auth-server";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { assertProjectAllowed, isSingleProjectMode } from "@/lib/single-project";
+import { MainRootLayout } from "../../main-root-layout";
 
 export default async function Layout({
   children,
@@ -19,6 +21,7 @@ export default async function Layout({
   params: Promise<{ owner: string; repo: string; }>;
 }) {
   const { owner, repo } = await params;
+  assertProjectAllowed(owner, repo);
   const requestHeaders = await headers();
   const session = await getServerSession();
   const user = session?.user;
@@ -37,19 +40,32 @@ export default async function Layout({
     const branchNames = repoInfo.branches ?? [];
     
     if (branchNames.length === 0) {
-      return(
+      const singleProject = isSingleProjectMode();
+      const emptyRepo = (
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
             <EmptyTitle>Empty repository</EmptyTitle>
             <EmptyDescription>Create a branch and add a &quot;.pages.yml&quot; file to configure this repository.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Link className={buttonVariants({ variant: "default" })} href="/">
-              Choose another repository
-            </Link>
+            {singleProject ? (
+              <a
+                className={buttonVariants({ variant: "default" })}
+                href={`https://github.com/${owner}/${repo}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View on GitHub
+              </a>
+            ) : (
+              <Link className={buttonVariants({ variant: "default" })} href="/">
+                Choose another repository
+              </Link>
+            )}
           </EmptyContent>
         </Empty>
       );
+      return singleProject ? <MainRootLayout>{emptyRepo}</MainRootLayout> : emptyRepo;
     }
 
     return (
@@ -63,36 +79,53 @@ export default async function Layout({
       return <GithubAuthExpired />;
     }
 
+    const singleProject = isSingleProjectMode();
     switch (error.status) {
-      case 404:
+      case 404: {
         // TODO: adjust as it may be the permissions as insufficient (suggest installing the app)
-        return(
+        const notFound = (
           <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
-              <EmptyTitle>Repository not found</EmptyTitle>
-              <EmptyDescription>It may have been removed, renamed, or the URL may be incorrect.</EmptyDescription>
+              <EmptyTitle>{singleProject ? "Project not found" : "Repository not found"}</EmptyTitle>
+              <EmptyDescription>
+                {singleProject
+                  ? "The configured project could not be found. Contact your administrator."
+                  : "It may have been removed, renamed, or the URL may be incorrect."}
+              </EmptyDescription>
             </EmptyHeader>
-            <EmptyContent>
-              <Link className={buttonVariants({ variant: "default" })} href="/">
-                Choose another repository
-              </Link>
-            </EmptyContent>
+            {!singleProject && (
+              <EmptyContent>
+                <Link className={buttonVariants({ variant: "default" })} href="/">
+                  Choose another repository
+                </Link>
+              </EmptyContent>
+            )}
           </Empty>
-        ); 
-      case 403:
-        return(
+        );
+        return singleProject ? <MainRootLayout>{notFound}</MainRootLayout> : notFound;
+      }
+      case 403: {
+        const denied = (
           <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
               <EmptyTitle>Access denied</EmptyTitle>
-              <EmptyDescription>You do not have permission to access this repository.</EmptyDescription>
+              <EmptyDescription>
+                {singleProject
+                  ? "You don't have access to this project."
+                  : "You do not have permission to access this repository."}
+              </EmptyDescription>
             </EmptyHeader>
-            <EmptyContent>
-              <Link className={buttonVariants({ variant: "default" })} href="/">
-                Choose another repository
-              </Link>
-            </EmptyContent>
+            {!singleProject && (
+              <EmptyContent>
+                <Link className={buttonVariants({ variant: "default" })} href="/">
+                  Choose another repository
+                </Link>
+              </EmptyContent>
+            )}
           </Empty>
-        ); 
+        );
+        return singleProject ? <MainRootLayout>{denied}</MainRootLayout> : denied;
+      }
       default:
         throw error;
     }
