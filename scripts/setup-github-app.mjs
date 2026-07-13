@@ -125,7 +125,9 @@ async function main() {
   });
 
   const converted = await exchangeManifestCode(code);
-  const envPath = args.envPath ? resolve(process.cwd(), args.envPath) : "";
+  const envPath = args.print
+    ? ""
+    : resolve(process.cwd(), args.envPath || ".env.local");
   const authSecret =
     process.env.BETTER_AUTH_SECRET ||
     process.env.AUTH_SECRET ||
@@ -155,7 +157,7 @@ async function main() {
     for (const [key, value] of Object.entries(envValues)) {
       console.log(`  ${key}=${value}`);
     }
-    console.log("\nPass --env <path> to write them to a file automatically.");
+    console.log("\nRun without --print to write them to .env.local automatically.");
   }
   console.log(`- User authorization callbacks: ${callbackUrls.join(", ")}`);
   console.log(`- Setup URL: ${setupUrl}`);
@@ -371,6 +373,7 @@ function parseArgs(argv) {
     ownerType: "",
     org: "",
     open: true,
+    print: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -378,6 +381,7 @@ function parseArgs(argv) {
     if (arg === "--help" || arg === "-h") result.help = true;
     else if (arg === "--port") result.port = argv[++i] || "";
     else if (arg === "--env") result.envPath = argv[++i] || "";
+    else if (arg === "--print") result.print = true;
     else if (arg === "--base-url") result.baseUrl = argv[++i] || "";
     else if (arg === "--webhook-base-url") result.webhookBaseUrl = argv[++i] || "";
     else if (arg === "--app-name") result.appName = argv[++i] || "";
@@ -406,7 +410,8 @@ function printHelp() {
       "  --owner-type <type>      personal or org (default: personal)",
       "  --org <slug>             Organization slug when owner-type=org",
       "  --port <number>          Local callback port (default: 8787)",
-      "  --env <path>             Write generated env vars to this file",
+      "  --env <path>             Env file to update (default: .env.local)",
+      "  --print                  Print the generated env vars instead of writing them",
       "  --no-open                Do not try to open browser automatically",
       "  -h, --help               Show help",
       "",

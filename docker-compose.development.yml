@@ -1,21 +1,22 @@
 # Local development database.
 # Usage: npm run db:up / npm run db:down
-# Credentials match the DATABASE_URL documented in .env.local.example.
+# Defaults come from .env.development (passed via --env-file in the npm
+# scripts); override via shell env, e.g. `DB_PORT=5433 npm run db:up`.
 name: pagescms-dev
 
 services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: pagescms
-      POSTGRES_PASSWORD: pagescms
-      POSTGRES_DB: pagescms
+      POSTGRES_USER: ${DB_USER:-pagescms}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pagescms}
+      POSTGRES_DB: ${DB_NAME:-pagescms}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pagescms -d pagescms"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pagescms} -d ${DB_NAME:-pagescms}"]
       interval: 3s
       timeout: 3s
       retries: 10

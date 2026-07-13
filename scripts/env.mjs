@@ -1,28 +1,23 @@
-// Minimal line-based reader for .env files. Only reliable for single-line
-// values (PORT, BASE_URL...) — multi-line values like the GitHub App private
-// key are left to Next.js's own env loading.
-import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+// Read values from the project's env files using the same loader and
+// precedence chain as Next.js itself (@next/env, also used by
+// db/envConfig.ts for drizzle-kit): .env.development.local, .env.local,
+// .env.development, .env — with proper multi-line value support.
+import nextEnv from "@next/env";
 
-export function readEnvValue(
-  name,
-  files = [".env.development.local", ".env.local", ".env"],
-) {
-  for (const file of files) {
-    const path = resolve(process.cwd(), file);
-    if (!existsSync(path)) continue;
-    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-      const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/);
-      if (!match || match[1] !== name) continue;
-      let value = match[2];
-      if (
-        (value.startsWith('"') && value.endsWith('"') && value.length > 1) ||
-        (value.startsWith("'") && value.endsWith("'") && value.length > 1)
-      ) {
-        value = value.slice(1, -1);
-      }
-      return value;
-    }
+const { loadEnvConfig } = nextEnv;
+
+let combinedEnv;
+
+export function readEnvValue(name) {
+  if (!combinedEnv) {
+    // loadEnvConfig mutates process.env; snapshot and restore so callers
+    // (e.g. with-env spawning next dev) keep a pristine parent env and
+    // children still resolve env files live.
+    const snapshot = { ...process.env };
+    const silent = { info: () => {}, error: console.error };
+    const dev = process.env.NODE_ENV !== "production";
+    combinedEnv = loadEnvConfig(process.cwd(), dev, silent).combinedEnv;
+    process.env = snapshot;
   }
-  return "";
+  return combinedEnv[name] ?? "";
 }

@@ -64,10 +64,13 @@ npm install
 4. Create `.env.local` with at least:
 
 ```bash
-DATABASE_URL=postgresql://pagescms:pagescms@localhost:5432/pagescms
 BETTER_AUTH_SECRET=your-random-secret
 CRYPTO_KEY=your-random-secret
 ```
+
+Non-secret development defaults (`DATABASE_URL`, `PORT`, `DB_*`) ship in
+the committed `.env.development` file; override them in `.env.local` if
+needed.
 
 Optional but useful:
 
@@ -103,12 +106,14 @@ named tunnel once — see the header of `scripts/dev-tunnel.mjs`.
 tunnel running so its URL is used for the app):
 
 ```bash
-npm run setup:github-app -- --env .env.local
+npm run setup:github-app
 ```
 
-Useful options:
+The generated credentials are written to `.env.local`. Useful options:
 
 - `--base-url <url>` (defaults to the tunnel URL, else `http://localhost:$PORT`)
+- `--env <path>` (env file to update, default: `.env.local`)
+- `--print` (print the env vars instead of writing them)
 - `--owner-type personal|org`
 - `--org <slug>`
 - `--app-name "Pages CMS (local)"`
