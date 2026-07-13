@@ -30,13 +30,13 @@ const toSummary = (
   triggeredByGithubUsername: (row.triggeredBy as { githubUsername?: string | null } | null)?.githubUsername ?? null,
   triggeredByImage: (row.triggeredBy as { image?: string | null } | null)?.image ?? null,
   canCancel: Boolean(
-    (can("github.act", { user })
+    (can.github.act({ user })
       || (row.triggeredBy as { userId?: string | null } | null)?.userId === user.id)
     && row.status !== "completed"
     && row.workflowRunId
     && ((row.payload as { action?: { cancelable?: boolean } } | null)?.action?.cancelable ?? true),
   ),
-  canRerun: can("repo.actions.rerun", { user }),
+  canRerun: can.repo.actions.rerun({ user }),
   cancelable: (row.payload as { action?: { cancelable?: boolean } } | null)?.action?.cancelable ?? true,
   createdAt: row.createdAt?.toISOString() ?? null,
   updatedAt: row.updatedAt?.toISOString() ?? null,
@@ -243,8 +243,8 @@ export async function POST(
 
     const { token } = await getToken(user, params.owner, params.repo, true);
     const octokit = createOctokitInstance(token);
-    const isGithubUser = can("github.act", { user });
-    const canRerun = can("repo.actions.rerun", { user });
+    const isGithubUser = can.github.act({ user });
+    const canRerun = can.repo.actions.rerun({ user });
     const isOwnRun = (row.triggeredBy as { userId?: string | null } | null)?.userId === user.id;
     const isCancelable = ((row.payload as { action?: { cancelable?: boolean } } | null)?.action?.cancelable ?? true);
 

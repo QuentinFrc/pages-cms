@@ -140,7 +140,7 @@ export function RepoActionButtons({
 }: RepoActionButtonsProps) {
   const { user } = useUser();
   const { trackActionRun } = useActionToasts();
-  const isGithubUser = can("repo.manage", { user });
+  const isGithubUser = can.repo.manage({ user });
   const [runsByAction, setRunsByAction] = useState<Record<string, ActionRunSummary[]>>({});
   const [dispatching, setDispatching] = useState<Record<string, boolean>>({});
   const [dialogAction, setDialogAction] = useState<RepoActionConfig | null>(null);

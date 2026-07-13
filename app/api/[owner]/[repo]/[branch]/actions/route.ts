@@ -201,8 +201,8 @@ export async function GET(
     const sessionResult = await requireApiUserSession();
     if ("response" in sessionResult) return sessionResult.response;
     const user = sessionResult.user;
-    const isGithubUser = can("github.act", { user });
-    const canRerun = can("repo.actions.rerun", { user });
+    const isGithubUser = can.github.act({ user });
+    const canRerun = can.repo.actions.rerun({ user });
     const { token } = await getToken(user, params.owner, params.repo, true);
     const octokit = createOctokitInstance(token);
 

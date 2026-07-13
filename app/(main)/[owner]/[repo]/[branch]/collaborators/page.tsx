@@ -11,7 +11,7 @@ export default function Page() {
   const { config } = useConfig();
   const { user } = useUser();
   if (!config) throw new Error(`Configuration not found.`);
-  if (!can("repo.collaborators.view", { user })) {
+  if (!can.repo.collaborators.view({ user })) {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>

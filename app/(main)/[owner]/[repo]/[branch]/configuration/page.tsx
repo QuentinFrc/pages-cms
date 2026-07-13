@@ -31,7 +31,7 @@ export default function Page() {
     setConfig(data.config);
   };
 
-  if (!can("repo.configuration.view", { user })) {
+  if (!can.repo.configuration.view({ user })) {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>

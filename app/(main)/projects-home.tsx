@@ -22,8 +22,8 @@ export function ProjectsHome() {
   const [defaultAccount, setDefaultAccount] = useState<any>(null);
   const [hasRecentVisits, setHasRecentVisits] = useState(false);
   const { user } = useUser();
-  const isGithubUser = can("github.act", { user });
-  const canCreateFromTemplate = can("projects.createFromTemplate", { user });
+  const isGithubUser = can.github.act({ user });
+  const canCreateFromTemplate = can.projects.createFromTemplate({ user });
 
   useEffect(() => {
     setHasRecentVisits(getVisits().length > 0);

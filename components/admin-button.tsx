@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 export function AdminButton() {
   const { user } = useUser();
 
-  if (!can("admin.access", { user })) return null;
+  if (!can.admin.access({ user })) return null;
 
   return (
     <Button asChild variant="ghost" size="icon-sm" className="rounded-full">

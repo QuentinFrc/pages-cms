@@ -330,7 +330,7 @@ export function RepoSidebar() {
 
   const adminItems = useMemo<NavItem[]>(() => {
     if (!config) return [];
-    const canManageRepo = can("repo.manage", { user });
+    const canManageRepo = can.repo.manage({ user });
 
     const items: NavItem[] = [];
 

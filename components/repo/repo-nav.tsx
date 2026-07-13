@@ -65,7 +65,7 @@ const RepoNav = ({
       label: item.label || item.name || "Media"
     })) || [];
 
-    const canManageRepo = can("repo.manage", { user });
+    const canManageRepo = can.repo.manage({ user });
 
     const settingsItem = canManageRepo && isConfigEnabled(configObject)
       ? {

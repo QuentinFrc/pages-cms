@@ -37,7 +37,7 @@ export async function GET(
     const type = searchParams.get("type");
 
     const githubAccount = await getGithubAccount(user.id);
-    if (githubAccount?.accessToken && can("github.act", { user })) {
+    if (githubAccount?.accessToken && can.github.act({ user })) {
       const token = githubAccount.accessToken;
 
       const repositorySelection = searchParams.get("repository_selection");

@@ -14,7 +14,7 @@ export default function Page() {
 
   if (!config) throw new Error("Configuration not found.");
 
-  if (!can("repo.actions.view", { user })) {
+  if (!can.repo.actions.view({ user })) {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>

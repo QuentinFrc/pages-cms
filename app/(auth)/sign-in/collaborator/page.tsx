@@ -79,7 +79,7 @@ export default async function Page({
     headers: await headers(),
   });
   const user = session?.user;
-  const isGithubUser = can("github.act", { user });
+  const isGithubUser = can.github.act({ user });
   const fallbackInviteEmail = resolvedSearchParams.email?.trim().toLowerCase();
   const fallbackOwner = resolvedSearchParams.owner?.trim().toLowerCase();
   const fallbackRepo = resolvedSearchParams.repo?.trim().toLowerCase();

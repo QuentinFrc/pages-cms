@@ -6,27 +6,31 @@ export type PermCtx = {
   githubRepoPermissions?: { push?: boolean; admin?: boolean };
 };
 
-const RULES = {
-  "admin.access": (c: PermCtx) => Boolean(c.user?.isAdmin),
+export type PermissionCheck = (ctx: PermCtx) => boolean;
 
-  "github.act": (c: PermCtx) => Boolean(c.user?.githubUsername),
+const hasGithub = (c: PermCtx) => Boolean(c.user?.githubUsername);
 
-  "projects.list": (c: PermCtx) => !c.singleProject,
-  "projects.switch": (c: PermCtx) => !c.singleProject,
-  "projects.createFromTemplate": (c: PermCtx) => Boolean(c.user?.githubUsername),
-
-  "repo.manage": (c: PermCtx) => Boolean(c.user?.githubUsername),
-  "repo.cache.view": (c: PermCtx) => Boolean(c.user?.githubUsername),
-  "repo.collaborators.view": (c: PermCtx) => Boolean(c.user?.githubUsername),
-  "repo.actions.view": (c: PermCtx) => Boolean(c.user?.githubUsername),
-  "repo.configuration.view": (c: PermCtx) => Boolean(c.user?.githubUsername),
-  "repo.actions.rerun": (c: PermCtx) => Boolean(c.user?.githubUsername),
-
-  "repo.write": (c: PermCtx) => Boolean(c.githubRepoPermissions?.push),
+export const can = {
+  admin: {
+    access: (c: PermCtx) => Boolean(c.user?.isAdmin),
+  },
+  github: {
+    act: hasGithub,
+  },
+  projects: {
+    list: (c: PermCtx) => !c.singleProject,
+    switch: (c: PermCtx) => !c.singleProject,
+    createFromTemplate: hasGithub,
+  },
+  repo: {
+    manage: hasGithub,
+    write: (c: PermCtx) => Boolean(c.githubRepoPermissions?.push),
+    cache: { view: hasGithub },
+    collaborators: { view: hasGithub },
+    configuration: { view: hasGithub },
+    actions: {
+      view: hasGithub,
+      rerun: hasGithub,
+    },
+  },
 } as const;
-
-export type Permission = keyof typeof RULES;
-
-export function can(perm: Permission, ctx: PermCtx): boolean {
-  return RULES[perm](ctx);
-}

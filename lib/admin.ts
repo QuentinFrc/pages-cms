@@ -3,6 +3,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { createHttpError } from "@/lib/api-error";
+import { can } from "@/lib/permissions";
 import { assertCan } from "@/lib/permissions-server";
 import type { User } from "@/types/user";
 
@@ -34,7 +35,7 @@ const requireAdminSession = async () => {
     throw createHttpError("Not signed in.", 401);
   }
 
-  assertCan("admin.access", { user }, "Admin access required.");
+  assertCan(can.admin.access, { user }, "Admin access required.");
 
   return { session, user };
 };

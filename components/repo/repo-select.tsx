@@ -30,7 +30,7 @@ export function RepoSelect({
   onAccountSelect?: (account: any) => void
 }) {
   const { user } = useUser();
-  const isGithubUser = can("github.act", { user });
+  const isGithubUser = can.github.act({ user });
 
   const accounts = useMemo(() => {
     if (!user) return [];

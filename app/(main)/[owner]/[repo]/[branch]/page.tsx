@@ -21,7 +21,7 @@ export default function Page() {
       router.replace(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/${config.object.content[0].type}/${config.object.content[0].name}`);
     } else if (config?.object.media) {
       router.replace(`/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/media/${config.object.media[0].name}`);
-    } else if (can("github.act", { user }) && isConfigEnabled(config?.object)) {
+    } else if (can.github.act({ user }) && isConfigEnabled(config?.object)) {
       router.replace(`/${config?.owner}/${config?.repo}/${encodeURIComponent(config!.branch)}/configuration`);
     } else {
       setError(true);
@@ -30,7 +30,7 @@ export default function Page() {
   
   return error
     ? (
-      can("github.act", { user })
+      can.github.act({ user })
         ? <Empty className="absolute inset-0 border-0 rounded-none">
             <EmptyHeader>
               <EmptyTitle>Configuration unavailable</EmptyTitle>
