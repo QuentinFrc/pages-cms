@@ -1,7 +1,16 @@
 #!/usr/bin/env node
-// Expose the local app over public HTTPS with a Cloudflare quick tunnel.
+// Expose the local app over public HTTPS with a Cloudflare tunnel.
 // GitHub rejects webhook URLs pointing to localhost, so the setup helper
 // (and GitHub webhooks during dev) need a publicly reachable URL.
+//
+// Two modes:
+// - Named tunnel (stable URL, recommended): set TUNNEL_HOSTNAME (and
+//   optionally TUNNEL_NAME) in .env.local. One-time creation:
+//     cloudflared tunnel login
+//     cloudflared tunnel create <name>
+//     cloudflared tunnel route dns <name> <hostname>
+// - Quick tunnel (fallback): random *.trycloudflare.com URL that changes
+//   on every start.
 //
 // The tunnel URL is written to .tunnel-url (picked up by
 // setup-github-app.mjs) and to BASE_URL in .env.development.local, which
@@ -17,6 +26,9 @@ const args = process.argv.slice(2);
 const port =
   getArg("--port") || process.env.PORT || readEnvValue("PORT") || "3000";
 const localUrl = getArg("--url") || `http://localhost:${port}`;
+const hostname = getArg("--hostname") || readEnvValue("TUNNEL_HOSTNAME");
+const tunnelName =
+  getArg("--name") || readEnvValue("TUNNEL_NAME") || "pagescms-dev";
 const urlFile = resolve(process.cwd(), ".tunnel-url");
 const devEnvFile = resolve(process.cwd(), ".env.development.local");
 
@@ -36,43 +48,64 @@ try {
   process.exit(1);
 }
 
-console.log(`Starting Cloudflare quick tunnel to ${localUrl}...`);
+const named = Boolean(hostname);
+console.log(
+  named
+    ? `Starting Cloudflare named tunnel '${tunnelName}' (${hostname}) to ${localUrl}...`
+    : `Starting Cloudflare quick tunnel to ${localUrl}...`,
+);
 
 const child = spawn(
   "cloudflared",
-  ["tunnel", "--url", localUrl, "--no-autoupdate"],
+  named
+    ? ["tunnel", "run", "--url", localUrl, tunnelName]
+    : ["tunnel", "--url", localUrl, "--no-autoupdate"],
   { stdio: ["ignore", "pipe", "pipe"] },
 );
 
 let tunnelUrl = "";
 
+const onReady = (url) => {
+  tunnelUrl = url;
+  writeFileSync(urlFile, `${tunnelUrl}\n`, "utf8");
+  upsertBaseUrl(tunnelUrl);
+  updateAppWebhook(tunnelUrl);
+  console.log(
+    [
+      "",
+      "Tunnel ready:",
+      `  ${tunnelUrl}  ->  ${localUrl}`,
+      "",
+      `URL saved to ${urlFile} (picked up by setup:github-app).`,
+      `BASE_URL updated in ${devEnvFile} (picked up live by next dev).`,
+      "Keep this process running while using the app. Ctrl+C to stop.",
+      ...(named
+        ? [""]
+        : [
+            "",
+            "Reminder: if this is a NEW tunnel URL, sign-in from the tunnel",
+            "origin needs the new callback URL added by hand in the GitHub",
+            "App settings (callbacks cannot be updated via API). Sign-in from",
+            `http://localhost:${port} keeps working if it is registered.`,
+            "Tip: set TUNNEL_HOSTNAME in .env.local to use a stable named",
+            "tunnel instead (see the header of scripts/dev-tunnel.mjs).",
+            "",
+          ]),
+    ].join("\n"),
+  );
+};
+
 const scan = (chunk) => {
   const text = chunk.toString();
-  if (!tunnelUrl) {
-    const match = text.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
-    if (match) {
-      tunnelUrl = match[0];
-      writeFileSync(urlFile, `${tunnelUrl}\n`, "utf8");
-      upsertBaseUrl(tunnelUrl);
-      updateAppWebhook(tunnelUrl);
-      console.log(
-        [
-          "",
-          "Tunnel ready:",
-          `  ${tunnelUrl}  ->  ${localUrl}`,
-          "",
-          `URL saved to ${urlFile} (picked up by setup:github-app).`,
-          `BASE_URL updated in ${devEnvFile} (picked up live by next dev).`,
-          "Keep this process running while using the app. Ctrl+C to stop.",
-          "",
-          "Reminder: if this is a NEW tunnel URL, sign-in from the tunnel",
-          "origin needs the new callback URL added by hand in the GitHub",
-          "App settings (callbacks cannot be updated via API). Sign-in from",
-          `http://localhost:${port} keeps working if it is registered.`,
-          "",
-        ].join("\n"),
-      );
+  if (tunnelUrl) return;
+  if (named) {
+    // The URL is known up front; wait for the first edge connection.
+    if (/Registered tunnel connection/i.test(text)) {
+      onReady(`https://${hostname}`);
     }
+  } else {
+    const match = text.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+    if (match) onReady(match[0]);
   }
 };
 
