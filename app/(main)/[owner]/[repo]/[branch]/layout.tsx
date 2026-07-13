@@ -8,7 +8,7 @@ import { getToken } from "@/lib/token";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { getHomeHref, isSingleProjectMode } from "@/lib/single-project";
+import { isSingleProjectMode } from "@/lib/single-project";
 
 export default async function Layout({
   children,
@@ -77,8 +77,6 @@ export default async function Layout({
       }
     } else if (error.status === 403) {
       const singleProject = isSingleProjectMode();
-      const homeHref = getHomeHref();
-      const alreadyAtHome = homeHref === `/${owner}/${repo}` || homeHref === `/${owner}/${repo}/${encodeURIComponent(decodedBranch)}`;
       errorMessage = (
         <Empty className="absolute inset-0 border-0 rounded-none">
           <EmptyHeader>
@@ -89,10 +87,10 @@ export default async function Layout({
                 : "You do not have permission to access this repository."}
             </EmptyDescription>
           </EmptyHeader>
-          {(!singleProject || !alreadyAtHome) && (
+          {!singleProject && (
             <EmptyContent>
-              <Link className={buttonVariants({ variant: "default" })} href={singleProject ? homeHref : "/"}>
-                {singleProject ? "Open project" : "Choose another repository"}
+              <Link className={buttonVariants({ variant: "default" })} href="/">
+                Choose another repository
               </Link>
             </EmptyContent>
           )}

@@ -1,37 +1,31 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { ProjectContext } from "@/lib/single-project";
+import type { SingleProject } from "@/lib/single-project";
 
 type SingleProjectValue = {
-  project: ProjectContext | null;
-  homeHref: string;
+  enabled: boolean;
+  project: SingleProject | null;
 };
 
 const SingleProjectReactContext = createContext<SingleProjectValue>({
+  enabled: false,
   project: null,
-  homeHref: "/",
 });
 
-export const useSingleProject = () => {
-  const value = useContext(SingleProjectReactContext);
-  return {
-    ...value,
-    enabled: value.project !== null,
-  };
-};
+export const useSingleProject = () => useContext(SingleProjectReactContext);
 
 export const SingleProjectProvider = ({
+  enabled,
   project,
-  homeHref,
   children,
 }: {
-  project: ProjectContext | null;
-  homeHref: string;
+  enabled: boolean;
+  project: SingleProject | null;
   children: React.ReactNode;
 }) => {
   return (
-    <SingleProjectReactContext.Provider value={{ project, homeHref }}>
+    <SingleProjectReactContext.Provider value={{ enabled, project }}>
       {children}
     </SingleProjectReactContext.Provider>
   );

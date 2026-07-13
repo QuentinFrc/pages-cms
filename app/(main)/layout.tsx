@@ -9,7 +9,7 @@ import { GithubAuthExpired } from "@/components/github-auth-expired";
 import { isGithubAuthError } from "@/lib/github-auth";
 import { invalidateSessionForGithubAuthError } from "@/lib/github-auth-server";
 import { hasAdminAccess } from "@/lib/admin";
-import { getHomeHref, getProjectContext } from "@/lib/single-project";
+import { getSingleProject, isSingleProjectMode } from "@/lib/single-project";
 
 export default async function Layout({
   children,
@@ -41,10 +41,13 @@ export default async function Layout({
     isAdmin: hasAdminAccess(session.user as User),
     accounts,
   };
-  
+
+  const singleProjectEnabled = isSingleProjectMode();
+  const singleProject = singleProjectEnabled ? await getSingleProject() : null;
+
 	return (
     <UserProvider user={userWithAccounts}>
-      <SingleProjectProvider project={getProjectContext()} homeHref={getHomeHref()}>
+      <SingleProjectProvider enabled={singleProjectEnabled} project={singleProject}>
         {children}
       </SingleProjectProvider>
     </UserProvider>

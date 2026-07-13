@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
-import { getHomeHref, isSingleProjectMode } from "@/lib/single-project";
+import { getSingleProject, isSingleProjectMode, singleProjectHref } from "@/lib/single-project";
 import { ProjectsHome } from "./projects-home";
 
-export default function Page() {
+export default async function Page() {
   if (isSingleProjectMode()) {
-    redirect(getHomeHref());
+    const project = await getSingleProject();
+    if (project) redirect(singleProjectHref(project));
   }
   return <ProjectsHome />;
 }

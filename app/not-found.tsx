@@ -1,7 +1,6 @@
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { getHomeHref } from "@/lib/single-project";
 
 export default function NotFound() {
   return (
@@ -11,7 +10,7 @@ export default function NotFound() {
         <EmptyDescription>The page or resource you requested could not be found.</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Link className={buttonVariants({ variant: "default" })} href={getHomeHref()}>
+        <Link className={buttonVariants({ variant: "default" })} href="/">
           Go home
         </Link>
       </EmptyContent>

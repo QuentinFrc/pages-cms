@@ -53,7 +53,6 @@ import {
 } from "@/components/ui/pagination";
 import { getInitialsFromName } from "@/lib/utils/avatar";
 import { cn } from "@/lib/utils";
-import { getHomeHref } from "@/lib/single-project";
 
 const formatDateTime = (value: Date | string | null | undefined) => {
   if (!value) return "-";
@@ -183,7 +182,7 @@ export default async function Page({
             buttonVariants({ variant: "outline", size: "xs" }),
             "inline-flex",
           )}
-          href={getHomeHref()}
+          href="/"
         >
           <ArrowLeft />
           Go home

@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getHomeHref } from "@/lib/single-project";
 
 export default async function Page() {
   const session = await auth.api.getSession({
@@ -47,7 +46,7 @@ export default async function Page() {
             buttonVariants({ variant: "outline", size: "xs" }),
             "inline-flex",
           )}
-          href={getHomeHref()}
+          href="/"
         >
           <ArrowLeft />
           Go home

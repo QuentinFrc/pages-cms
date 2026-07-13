@@ -10,7 +10,7 @@ import { invalidateSessionForGithubAuthError } from "@/lib/github-auth-server";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { assertProjectAllowed, isSingleProjectMode } from "@/lib/single-project";
+import { isSingleProjectMode } from "@/lib/single-project";
 import { MainRootLayout } from "../../main-root-layout";
 
 export default async function Layout({
@@ -21,7 +21,6 @@ export default async function Layout({
   params: Promise<{ owner: string; repo: string; }>;
 }) {
   const { owner, repo } = await params;
-  assertProjectAllowed(owner, repo);
   const requestHeaders = await headers();
   const session = await getServerSession();
   const user = session?.user;
