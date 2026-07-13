@@ -87,6 +87,8 @@ const onReady = (url) => {
             "origin needs the new callback URL added by hand in the GitHub",
             "App settings (callbacks cannot be updated via API). Sign-in from",
             `http://localhost:${port} keeps working if it is registered.`,
+            "If pages do not hydrate behind the tunnel, set",
+            'ALLOWED_DEV_ORIGINS="*.trycloudflare.com" in .env.local.',
             "Tip: set TUNNEL_HOSTNAME in .env.local to use a stable named",
             "tunnel instead (see the header of scripts/dev-tunnel.mjs).",
             "",
