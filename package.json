@@ -11,6 +11,7 @@
     "setup:github-app": "node scripts/setup-github-app.mjs",
     "tunnel": "node scripts/dev-tunnel.mjs",
     "dev": "node scripts/with-env.mjs next dev",
+    "dev:tunnel": "node scripts/dev-with-tunnel.mjs",
     "build": "next build",
     "postbuild": "npm run db:migrate",
     "start": "node scripts/with-env.mjs next start",
