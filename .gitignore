@@ -30,6 +30,7 @@ yarn-error.log*
 # env files
 .env*
 !.env.local.example
+!.env.development
 
 # vercel
 .vercel
@@ -40,3 +41,4 @@ next-env.d.ts
 
 # Database
 local.db
+.tunnel-url
