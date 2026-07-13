@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { collaboratorTable, verificationTable } from "@/db/schema";
 import { SignInFromInvite } from "@/components/sign-in-from-invite";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 import { getBaseUrl } from "@/lib/base-url";
 import { getAuthCallbackURL, getSafeRedirect } from "@/lib/auth-redirect";
 import { buttonVariants } from "@/components/ui/button";
@@ -79,7 +79,7 @@ export default async function Page({
     headers: await headers(),
   });
   const user = session?.user;
-  const isGithubUser = hasGithubIdentity(user);
+  const isGithubUser = can.github.act({ user });
   const fallbackInviteEmail = resolvedSearchParams.email?.trim().toLowerCase();
   const fallbackOwner = resolvedSearchParams.owner?.trim().toLowerCase();
   const fallbackRepo = resolvedSearchParams.repo?.trim().toLowerCase();

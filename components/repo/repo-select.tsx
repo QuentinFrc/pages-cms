@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronsUpDown, LockKeyhole, Search, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 import { requireApiSuccess } from "@/lib/api-client";
 
 export function RepoSelect({
@@ -30,7 +30,7 @@ export function RepoSelect({
   onAccountSelect?: (account: any) => void
 }) {
   const { user } = useUser();
-  const isGithubUser = hasGithubIdentity(user);
+  const isGithubUser = can.github.act({ user });
 
   const accounts = useMemo(() => {
     if (!user) return [];

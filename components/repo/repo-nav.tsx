@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
 import { useUser } from "@/contexts/user-context";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 import { isConfigEnabled } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { FileStack, FileText, FolderOpen, Settings, Users } from "lucide-react";
@@ -65,7 +65,7 @@ const RepoNav = ({
       label: item.label || item.name || "Media"
     })) || [];
 
-    const canManageRepo = hasGithubIdentity(user);
+    const canManageRepo = can.repo.manage({ user });
 
     const settingsItem = canManageRepo && isConfigEnabled(configObject)
       ? {

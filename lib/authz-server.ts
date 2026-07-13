@@ -2,6 +2,8 @@ import "server-only";
 
 import type { User } from "@/types/user";
 import { assertGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
+import { assertCan } from "@/lib/permissions-server";
 import { getUserToken } from "@/lib/token";
 import { createOctokitInstance } from "@/lib/utils/octokit";
 
@@ -23,9 +25,11 @@ const requireGithubRepoWriteAccess = async (
   const octokit = createOctokitInstance(token);
   const response = await octokit.rest.repos.get({ owner, repo });
 
-  if (!response.data.permissions?.push) {
-    throw new Error(`You do not have write access to "${owner}/${repo}".`);
-  }
+  assertCan(
+    can.repo.write,
+    { user, githubRepoPermissions: response.data.permissions },
+    `You do not have write access to "${owner}/${repo}".`,
+  );
 
   const repoAccess = {
     repoId: response.data.id,

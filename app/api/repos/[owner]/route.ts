@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { and, sql } from "drizzle-orm";
 import { collaboratorTable } from "@/db/schema";
 import { getGithubAccount } from "@/lib/github-account";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 import { toErrorResponse } from "@/lib/api-error";
 import { requireApiUserSession } from "@/lib/session-server";
 import { collaboratorMatchesUser } from "@/lib/collaborator-access";
@@ -37,7 +37,7 @@ export async function GET(
     const type = searchParams.get("type");
 
     const githubAccount = await getGithubAccount(user.id);
-    if (githubAccount?.accessToken && hasGithubIdentity(user)) {
+    if (githubAccount?.accessToken && can.github.act({ user })) {
       const token = githubAccount.accessToken;
 
       const repositorySelection = searchParams.get("repository_selection");

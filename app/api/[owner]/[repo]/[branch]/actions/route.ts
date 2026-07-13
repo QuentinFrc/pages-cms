@@ -6,7 +6,7 @@ import { getToken } from "@/lib/token";
 import { createHttpError, toErrorResponse } from "@/lib/api-error";
 import { requireApiUserSession } from "@/lib/session-server";
 import { resolveActionRef } from "@/lib/actions";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -201,7 +201,8 @@ export async function GET(
     const sessionResult = await requireApiUserSession();
     if ("response" in sessionResult) return sessionResult.response;
     const user = sessionResult.user;
-    const isGithubUser = hasGithubIdentity(user);
+    const isGithubUser = can.github.act({ user });
+    const canRerun = can.repo.actions.rerun({ user });
     const { token } = await getToken(user, params.owner, params.repo, true);
     const octokit = createOctokitInstance(token);
 
@@ -273,7 +274,7 @@ export async function GET(
             && row.workflowRunId
             && ((row.payload as { action?: { cancelable?: boolean } } | null)?.action?.cancelable ?? true),
           ),
-          canRerun: isGithubUser,
+          canRerun,
           cancelable: (row.payload as { action?: { cancelable?: boolean } } | null)?.action?.cancelable ?? true,
         })),
       });
@@ -328,7 +329,7 @@ export async function GET(
               && row.workflowRunId
               && ((row.payload as { action?: { cancelable?: boolean } } | null)?.action?.cancelable ?? true),
             ),
-            canRerun: isGithubUser,
+            canRerun,
             cancelable: (row.payload as { action?: { cancelable?: boolean } } | null)?.action?.cancelable ?? true,
           }));
         return accumulator;
