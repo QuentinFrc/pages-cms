@@ -8,7 +8,7 @@ import {
 } from "@/components/document-title";
 import { useConfig } from "@/contexts/config-context";
 import { useUser } from "@/contexts/user-context";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -31,7 +31,7 @@ export default function Page() {
     setConfig(data.config);
   };
 
-  if (!hasGithubIdentity(user)) {
+  if (!can("repo.configuration.view", { user })) {
     return (
       <Empty className="absolute inset-0 border-0 rounded-none">
         <EmptyHeader>

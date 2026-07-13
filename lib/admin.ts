@@ -3,6 +3,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { createHttpError } from "@/lib/api-error";
+import { assertCan } from "@/lib/permissions-server";
 import type { User } from "@/types/user";
 
 const getAdminEmails = () => {
@@ -33,9 +34,7 @@ const requireAdminSession = async () => {
     throw createHttpError("Not signed in.", 401);
   }
 
-  if (!hasAdminAccess(user)) {
-    throw createHttpError("Admin access required.", 403);
-  }
+  assertCan("admin.access", { user }, "Admin access required.");
 
   return { session, user };
 };

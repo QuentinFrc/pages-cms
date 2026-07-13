@@ -7,7 +7,7 @@ import { RepoSelect } from "@/components/repo/repo-select";
 import { RepoTemplates } from "@/components/repo/repo-templates";
 import { RepoLatest } from "@/components/repo/repo-latest";
 import { DocumentTitle } from "@/components/document-title";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 import {
   Empty,
   EmptyContent,
@@ -22,7 +22,8 @@ export function ProjectsHome() {
   const [defaultAccount, setDefaultAccount] = useState<any>(null);
   const [hasRecentVisits, setHasRecentVisits] = useState(false);
   const { user } = useUser();
-  const isGithubUser = hasGithubIdentity(user);
+  const isGithubUser = can("github.act", { user });
+  const canCreateFromTemplate = can("projects.createFromTemplate", { user });
 
   useEffect(() => {
     setHasRecentVisits(getVisits().length > 0);
@@ -53,7 +54,7 @@ export function ProjectsHome() {
                 onAccountSelect={(account) => setDefaultAccount(account)}
               />
             </div>
-            {isGithubUser && (
+            {canCreateFromTemplate && (
               <div className="space-y-4">
                 <h2 className="text-lg font-medium tracking-tight">
                   Create from a template

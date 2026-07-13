@@ -14,7 +14,7 @@ import { useConfig } from "@/contexts/config-context";
 import { useRepo } from "@/contexts/repo-context";
 import { useUser } from "@/contexts/user-context";
 import { useSingleProject } from "@/contexts/single-project-context";
-import { hasGithubIdentity } from "@/lib/authz-shared";
+import { can } from "@/lib/permissions";
 import { isCacheEnabled, isConfigEnabled } from "@/lib/config";
 import { getRootActions } from "@/lib/actions";
 import { getVisits } from "@/lib/tracker";
@@ -330,7 +330,7 @@ export function RepoSidebar() {
 
   const adminItems = useMemo<NavItem[]>(() => {
     if (!config) return [];
-    const canManageRepo = hasGithubIdentity(user);
+    const canManageRepo = can("repo.manage", { user });
 
     const items: NavItem[] = [];
 
