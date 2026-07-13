@@ -43,6 +43,14 @@ async function main() {
 
   const localCallbackUrl = `http://${host}:${port}/api/github-app/callback`;
   const userAuthorizationCallbackUrl = `${baseUrl}/api/auth/callback/github`;
+  // Also register the localhost callback: OAuth callbacks happen in the
+  // browser, so sign-in from localhost keeps working even after the
+  // (ephemeral) tunnel URL changes. Callback URLs cannot be updated via
+  // the GitHub API afterwards, so register both up front.
+  const localhostCallbackUrl = `http://localhost:${appPort}/api/auth/callback/github`;
+  const callbackUrls = [
+    ...new Set([userAuthorizationCallbackUrl, localhostCallbackUrl]),
+  ];
   const setupUrl = `${baseUrl}/`;
 
   // GitHub rejects webhook URLs that are not reachable over the public
@@ -57,7 +65,7 @@ async function main() {
   const manifest = {
     name: appName,
     url: baseUrl,
-    callback_urls: [userAuthorizationCallbackUrl],
+    callback_urls: callbackUrls,
     redirect_url: localCallbackUrl,
     description:
       "Pages CMS is an open source CMS for editing content in GitHub repositories.",
@@ -149,7 +157,7 @@ async function main() {
     }
     console.log("\nPass --env <path> to write them to a file automatically.");
   }
-  console.log(`- User authorization callback: ${userAuthorizationCallbackUrl}`);
+  console.log(`- User authorization callbacks: ${callbackUrls.join(", ")}`);
   console.log(`- Setup URL: ${setupUrl}`);
   console.log(
     webhookReachable

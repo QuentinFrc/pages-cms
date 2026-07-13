@@ -8,6 +8,7 @@
 // Next.js loads over .env.local in dev and reloads without a restart.
 // Both are cleaned up when the tunnel stops.
 import { spawn, execFileSync } from "node:child_process";
+import { createSign } from "node:crypto";
 import { readFileSync, writeFileSync, unlinkSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { readEnvValue } from "./env.mjs";
@@ -53,6 +54,7 @@ const scan = (chunk) => {
       tunnelUrl = match[0];
       writeFileSync(urlFile, `${tunnelUrl}\n`, "utf8");
       upsertBaseUrl(tunnelUrl);
+      updateAppWebhook(tunnelUrl);
       console.log(
         [
           "",
@@ -63,9 +65,10 @@ const scan = (chunk) => {
           `BASE_URL updated in ${devEnvFile} (picked up live by next dev).`,
           "Keep this process running while using the app. Ctrl+C to stop.",
           "",
-          "Reminder: the GitHub App's callback/webhook URLs are fixed at",
-          "creation — if this is a NEW tunnel URL, update them in the app",
-          "settings or re-run npm run setup:github-app.",
+          "Reminder: if this is a NEW tunnel URL, sign-in from the tunnel",
+          "origin needs the new callback URL added by hand in the GitHub",
+          "App settings (callbacks cannot be updated via API). Sign-in from",
+          `http://localhost:${port} keeps working if it is registered.`,
           "",
         ].join("\n"),
       );
@@ -93,6 +96,53 @@ function upsertBaseUrl(url) {
   const next = lines.filter((line) => !line.startsWith("BASE_URL="));
   next.push(`BASE_URL=${url}`);
   writeFileSync(devEnvFile, `${next.join("\n")}\n`, "utf8");
+}
+
+// Point the GitHub App's webhook at the new tunnel URL. Unlike callback
+// URLs, the webhook config IS updatable via API (PATCH /app/hook/config,
+// authenticated as the app). Best effort: skipped silently when no app
+// credentials are configured yet.
+async function updateAppWebhook(url) {
+  const appId = readEnvValue("GITHUB_APP_ID");
+  let pem = readEnvValue("GITHUB_APP_PRIVATE_KEY");
+  if (!appId || !pem) return;
+  pem = pem.replace(/\\n/g, "\n");
+
+  const b64 = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const now = Math.floor(Date.now() / 1000);
+  const unsigned = `${b64({ alg: "RS256", typ: "JWT" })}.${b64({
+    iat: now - 60,
+    exp: now + 300,
+    iss: appId,
+  })}`;
+
+  try {
+    const signer = createSign("RSA-SHA256");
+    signer.update(unsigned);
+    const jwt = `${unsigned}.${signer.sign(pem, "base64url")}`;
+
+    const response = await fetch("https://api.github.com/app/hook/config", {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: JSON.stringify({ url: `${url}/api/webhook/github` }),
+    });
+
+    if (response.ok) {
+      console.log(`GitHub App webhook updated: ${url}/api/webhook/github`);
+    } else {
+      console.warn(
+        `Could not update the GitHub App webhook (HTTP ${response.status}) — update it manually in the app settings.`,
+      );
+    }
+  } catch (error) {
+    console.warn(
+      `Could not update the GitHub App webhook (${error?.message}) — update it manually in the app settings.`,
+    );
+  }
 }
 
 // Drop the BASE_URL we wrote (only if it still points at this tunnel);
