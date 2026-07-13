@@ -10,6 +10,8 @@ function isAllowedOrigin(originHeader: string, hostHeader: string): boolean {
 	}
 }
 
+const LOCALHOST_HOST_REGEX = /^(localhost|127\.0\.0\.1)(:\d+)?$/i;
+
 // With DEV_REDIRECT_TO_BASE_URL=true, requests hitting localhost are
 // redirected to BASE_URL (kept in sync with the tunnel URL by
 // scripts/dev-tunnel.mjs), so the app is always used from a single
@@ -20,7 +22,7 @@ function localhostRedirect(request: NextRequest): NextResponse | null {
 	if (!baseUrl) return null;
 
 	const host = request.headers.get("host") || "";
-	if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(host)) return null;
+	if (!LOCALHOST_HOST_REGEX.test(host)) return null;
 
 	try {
 		const target = new URL(baseUrl);
