@@ -726,6 +726,12 @@ const ContentLeafSchema = z
         message: "'actions' must be an array of action definitions.",
       })
       .optional(),
+    // Fork addition: consumed by external type codegen, unused by the CMS.
+    typeName: z
+      .string({
+        message: "'typeName' must be a string.",
+      })
+      .optional(),
   })
   .strict();
 
