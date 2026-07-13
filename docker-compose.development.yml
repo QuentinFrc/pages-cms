@@ -1,0 +1,24 @@
+# Local development database.
+# Usage: npm run db:up / npm run db:down
+# Credentials match the DATABASE_URL documented in .env.local.example.
+name: pagescms-dev
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: pagescms
+      POSTGRES_PASSWORD: pagescms
+      POSTGRES_DB: pagescms
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pagescms -d pagescms"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:
