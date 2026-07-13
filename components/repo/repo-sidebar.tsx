@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useConfig } from "@/contexts/config-context";
 import { useRepo } from "@/contexts/repo-context";
 import { useUser } from "@/contexts/user-context";
+import { useSingleProject } from "@/contexts/single-project-context";
 import { hasGithubIdentity } from "@/lib/authz-shared";
 import { isCacheEnabled, isConfigEnabled } from "@/lib/config";
 import { getRootActions } from "@/lib/actions";
@@ -92,6 +93,7 @@ function RepoSwitcher() {
   const router = useRouter();
   const { owner, repo, branches = [] } = useRepo();
   const { config } = useConfig();
+  const { enabled: singleProject } = useSingleProject();
   const currentBranch = config?.branch ?? "";
   const sortedBranches = useMemo(
     () => [...branches].sort((a, b) => a.localeCompare(b)),
@@ -124,6 +126,10 @@ function RepoSwitcher() {
   }, []);
 
   const loadRecentRepos = useCallback(() => {
+    if (singleProject) {
+      setRecentRepos([]);
+      return;
+    }
     const visits = getVisits()
       .filter(
         (visit) =>
@@ -139,7 +145,7 @@ function RepoSwitcher() {
         branch: visit.branch,
       }));
     setRecentRepos(visits);
-  }, [owner, repo]);
+  }, [owner, repo, singleProject]);
 
   useEffect(() => {
     loadRecentRepos();
@@ -242,10 +248,14 @@ function RepoSwitcher() {
                 ))}
               </>
             )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/">All projects</Link>
-            </DropdownMenuItem>
+            {!singleProject && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/">All projects</Link>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

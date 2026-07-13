@@ -2,12 +2,14 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getAccounts } from "@/lib/accounts";
 import { UserProvider } from "@/contexts/user-context";
+import { SingleProjectProvider } from "@/contexts/single-project-context";
 import { User } from "@/types/user";
 import { getServerSession } from "@/lib/session-server";
 import { GithubAuthExpired } from "@/components/github-auth-expired";
 import { isGithubAuthError } from "@/lib/github-auth";
 import { invalidateSessionForGithubAuthError } from "@/lib/github-auth-server";
 import { hasAdminAccess } from "@/lib/admin";
+import { getSingleProject, isSingleProjectMode } from "@/lib/single-project";
 
 export default async function Layout({
   children,
@@ -39,10 +41,15 @@ export default async function Layout({
     isAdmin: hasAdminAccess(session.user as User),
     accounts,
   };
-  
+
+  const singleProjectEnabled = isSingleProjectMode();
+  const singleProject = singleProjectEnabled ? await getSingleProject() : null;
+
 	return (
     <UserProvider user={userWithAccounts}>
-      {children}
+      <SingleProjectProvider enabled={singleProjectEnabled} project={singleProject}>
+        {children}
+      </SingleProjectProvider>
     </UserProvider>
   );
 }
