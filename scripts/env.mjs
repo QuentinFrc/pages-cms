@@ -4,7 +4,10 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-export function readEnvValue(name, files = [".env.local", ".env"]) {
+export function readEnvValue(
+  name,
+  files = [".env.development.local", ".env.local", ".env"],
+) {
   for (const file of files) {
     const path = resolve(process.cwd(), file);
     if (!existsSync(path)) continue;
