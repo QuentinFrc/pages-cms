@@ -8,9 +8,19 @@ const allowedDevOrigins = [
   ...(process.env.ALLOWED_DEV_ORIGINS?.split(",").map((s) => s.trim()) ?? []),
 ].filter(Boolean);
 
+// Platform glue: populate BASE_URL from Vercel's system env vars at build
+// time so app code only ever reads BASE_URL. An explicit BASE_URL wins.
+const vercelUrl =
+  process.env.VERCEL_ENV === "production"
+    ? process.env.VERCEL_PROJECT_PRODUCTION_URL
+    : process.env.VERCEL_URL;
+const baseUrl =
+  process.env.BASE_URL?.trim() || (vercelUrl ? `https://${vercelUrl}` : undefined);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   ...(allowedDevOrigins.length > 0 ? { allowedDevOrigins } : {}),
+  ...(baseUrl ? { env: { BASE_URL: baseUrl } } : {}),
 };
 
 export default nextConfig;
