@@ -845,6 +845,9 @@ export function Entry({
       ? loadingSkeleton
       : <EntryForm
         fields={entryFields}
+        tabs={
+          !isFileEditorMode && schema?.list !== true ? schema?.tabs : undefined
+        }
         contentObject={entryContentObject}
         onSubmit={onSubmit}
         filePath={

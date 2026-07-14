@@ -17,6 +17,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { editComponents } from "@/fields/registry";
 import {
   initializeState,
@@ -24,8 +25,9 @@ import {
   generateZodSchema,
   sanitizeObject,
 } from "@/lib/schema";
-import { Field } from "@/types/field";
+import { Field, Tab } from "@/types/field";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   Form,
@@ -1027,8 +1029,118 @@ const SingleField = ({
 
 SingleField.displayName = "SingleField";
 
+const FieldTabs = ({
+  tabs,
+  fields,
+  renderFields,
+  registerBeforeSubmitHook,
+  runBeforeValidationHooks,
+}: {
+  tabs: Tab[];
+  fields: Field[];
+  renderFields: RenderFields;
+  registerBeforeSubmitHook: RegisterBeforeSubmitHook;
+  runBeforeValidationHooks: () => Promise<void>;
+}) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const {
+    formState: { errors },
+  } = useFormContext();
+
+  const declaredTabNames = useMemo(
+    () => new Set(tabs.map((tab) => tab.name)),
+    [tabs],
+  );
+  const firstTabName = tabs[0].name;
+
+  const groupedFields = useMemo(() => {
+    const groups = new Map<string, Field[]>();
+    tabs.forEach((tab) => groups.set(tab.name, []));
+    fields.forEach((field) => {
+      const target =
+        field.tab && declaredTabNames.has(field.tab) ? field.tab : firstTabName;
+      groups.get(target)!.push(field);
+    });
+    return groups;
+  }, [tabs, fields, declaredTabNames, firstTabName]);
+
+  const urlTabParam = searchParams?.get("tab") ?? null;
+  const activeTab =
+    urlTabParam && declaredTabNames.has(urlTabParam)
+      ? urlTabParam
+      : firstTabName;
+
+  const handleTabChange = useCallback(
+    (nextTab: string) => {
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
+      if (nextTab === firstTabName) {
+        params.delete("tab");
+      } else {
+        params.set("tab", nextTab);
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [firstTabName, pathname, router, searchParams],
+  );
+
+  return (
+    <Tabs
+      value={activeTab}
+      onValueChange={handleTabChange}
+      className="w-full gap-6"
+    >
+      <TabsList className="w-full">
+        {tabs.map((tab) => {
+          const groupFields = groupedFields.get(tab.name) ?? [];
+          const hasError = groupFields.some((field) =>
+            hasFieldPathError(errors, field.name),
+          );
+          return (
+            <TabsTrigger key={tab.name} value={tab.name}>
+              {tab.label || tab.name}
+              {hasError && (
+                <span
+                  aria-hidden
+                  className="ml-1 inline-block size-1.5 rounded-full bg-destructive"
+                />
+              )}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+      {tabs.map((tab) => {
+        const groupFields = groupedFields.get(tab.name) ?? [];
+        return (
+          <TabsContent
+            key={tab.name}
+            value={tab.name}
+            forceMount
+            className={cn(
+              "grid gap-6",
+              activeTab !== tab.name && "hidden",
+            )}
+          >
+            {renderFields(
+              groupFields,
+              undefined,
+              registerBeforeSubmitHook,
+              runBeforeValidationHooks,
+            )}
+          </TabsContent>
+        );
+      })}
+    </Tabs>
+  );
+};
+
 const EntryForm = ({
   fields,
+  tabs,
   contentObject,
   onSubmit = () => {},
   filePath,
@@ -1036,6 +1148,7 @@ const EntryForm = ({
   onChangeRegistered,
 }: {
   fields: Field[];
+  tabs?: Tab[];
   contentObject?: Record<string, unknown>;
   onSubmit: (values: Record<string, unknown>) => void;
   filePath?: React.ReactNode;
@@ -1171,7 +1284,22 @@ const EntryForm = ({
             {filePath}
           </div>
         )}
-        {renderFields(fields, undefined, registerBeforeSubmitHook, runBeforeValidationHooks)}
+        {tabs && tabs.length > 0 ? (
+          <FieldTabs
+            tabs={tabs}
+            fields={fields}
+            renderFields={renderFields}
+            registerBeforeSubmitHook={registerBeforeSubmitHook}
+            runBeforeValidationHooks={runBeforeValidationHooks}
+          />
+        ) : (
+          renderFields(
+            fields,
+            undefined,
+            registerBeforeSubmitHook,
+            runBeforeValidationHooks,
+          )
+        )}
       </form>
     </Form>
   );
