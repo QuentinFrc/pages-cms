@@ -26,6 +26,8 @@ import {
 import { toast } from "sonner";
 import { ArrowUpRight } from "lucide-react";
 import { FileRename } from "@/components/file/file-rename";
+import { useSWRConfig } from "swr";
+import { buildDeploymentsKey } from "@/hooks/use-deployments";
 
 export function FileOptions({
   path,
@@ -51,6 +53,7 @@ export function FileOptions({
   children: React.ReactNode;
 }) {
   const { config } = useConfig();
+  const { mutate } = useSWRConfig();
   if (!config) throw new Error(`Configuration not found.`);
 
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
@@ -87,6 +90,8 @@ export function FileOptions({
           });
 
           const data = await requireApiSuccess<any>(response, "Failed to delete file");
+
+          void mutate(buildDeploymentsKey(config.owner, config.repo, config.branch));
 
           resolve(data);
         } catch (error) {

@@ -8,6 +8,8 @@ import { getSchemaByName } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 import { requireApiSuccess } from "@/lib/api-client";
 import type { FileSaveData } from "@/types/api";
+import { useSWRConfig } from "swr";
+import { buildDeploymentsKey } from "@/hooks/use-deployments";
 
 interface MediaUploadContextValue {
   handleFiles: (files: File[]) => Promise<void>;
@@ -40,6 +42,7 @@ interface MediaUploadDropZoneProps {
 
 function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple, rename, disabled = false }: MediaUploadProps) {
   const { config } = useConfig();
+  const { mutate } = useSWRConfig();
   if (!config) throw new Error(`Configuration not found.`);
 
   const configMedia = useMemo(() => 
@@ -98,6 +101,8 @@ function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple
             "Failed to upload file",
           );
 
+          void mutate(buildDeploymentsKey(config.owner, config.repo, config.branch));
+
           return data.data as FileSaveData;
         })();
 
@@ -113,7 +118,7 @@ function MediaUploadRoot({ children, path, onUpload, media, extensions, multiple
     } catch (error) {
       console.error(error);
     }
-  }, [config, path, configMedia?.name, configMedia?.rename, onUpload, rename]);
+  }, [config, mutate, path, configMedia?.name, configMedia?.rename, onUpload, rename]);
 
   const contextValue = useMemo(() => ({
     handleFiles,

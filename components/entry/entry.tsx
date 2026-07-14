@@ -65,6 +65,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner";
 import { EllipsisVertical, History, Lock, LockOpen, Save } from "lucide-react";
 import useSWR, { useSWRConfig } from "swr";
+import { buildDeploymentsKey } from "@/hooks/use-deployments";
 
 type LintView = {
   state: {
@@ -391,6 +392,8 @@ export function Entry({
           const collectionKeyPrefix = `/api/${config.owner}/${config.repo}/${encodeURIComponent(config.branch)}/collections/${encodeURIComponent(name)}?`;
           void mutate((key) => typeof key === "string" && key.startsWith(collectionKeyPrefix));
         }
+
+        void mutate(buildDeploymentsKey(config.owner, config.repo, config.branch));
 
         resolve(data);
       } catch (error) {

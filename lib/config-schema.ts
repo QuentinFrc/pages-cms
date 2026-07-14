@@ -762,6 +762,41 @@ const ContentObjectSchema: z.ZodType<any> = z.lazy(() =>
   z.union([ContentLeafSchema, ContentGroupSchema]),
 );
 
+const DeploymentEnvironmentSchema = z
+  .object({
+    branch: z.string({
+      required_error: "'branch' is required.",
+      invalid_type_error: "'branch' must be a string.",
+    }),
+    name: z
+      .string({
+        message: "'name' must be a string.",
+      })
+      .optional(),
+    url: z
+      .string({
+        message: "'url' must be a string.",
+      })
+      .optional(),
+  })
+  .strict();
+
+const DeploymentSchema = z
+  .object({
+    provider: z
+      .string({
+        message: "'deployment.provider' must be a string.",
+      })
+      .optional(),
+    environments: z
+      .array(DeploymentEnvironmentSchema, {
+        message:
+          "'deployment.environments' must be an array of environment definitions.",
+      })
+      .optional(),
+  })
+  .strict();
+
 // Main schema with media and content
 const ConfigSchema = z
   .object({
@@ -796,6 +831,7 @@ const ConfigSchema = z
         message: "'actions' must be an array of action definitions.",
       })
       .optional(),
+    deployment: DeploymentSchema.optional(),
     settings: z
       .union([
         z
