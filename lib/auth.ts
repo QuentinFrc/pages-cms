@@ -4,7 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import { magicLink } from "better-auth/plugins";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { getBaseUrl } from "@/lib/base-url";
+import { getAuthBaseUrlConfig } from "@/lib/base-url";
 import { repairLegacyGithubStubOnLogin } from "@/lib/github-legacy-stub-repair";
 import { sendEmail } from "@/lib/mailer";
 import { syncGithubProfileOnLogin } from "@/lib/github-account";
@@ -13,7 +13,7 @@ import { LoginEmailTemplate } from "@/components/email/login";
 import { render } from "@react-email/render";
 
 export const auth = betterAuth({
-  baseURL: getBaseUrl(),
+  baseURL: getAuthBaseUrlConfig(),
   secret: (process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET) as string,
   user: {
     additionalFields: {
