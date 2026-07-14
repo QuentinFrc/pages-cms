@@ -303,6 +303,25 @@ const FilenameConfigSchema = z.union([
     .strict(),
 ]);
 
+const TabSchema = z
+  .object({
+    name: z
+      .string({
+        required_error: "'tabs[].name' is required.",
+        invalid_type_error: "'tabs[].name' must be a string.",
+      })
+      .regex(/^[a-zA-Z0-9-_]+$/, {
+        message:
+          "'tabs[].name' must be alphanumeric with dashes and underscores.",
+      }),
+    label: z
+      .string({
+        message: "'tabs[].label' must be a string.",
+      })
+      .optional(),
+  })
+  .strict();
+
 const ContentOperationsSchema = z
   .object({
     create: z
@@ -367,6 +386,11 @@ const generateFieldObjectSchema = (
           .regex(/^[a-zA-Z0-9-_]+$/, {
             message: "'name' must be alphanumeric with dashes and underscores.",
           }),
+        tab: z
+          .string({
+            message: "'tab' must be a string.",
+          })
+          .optional(),
       },
       ...baseObjectSchema,
     };
@@ -709,6 +733,11 @@ const ContentLeafSchema = z
         message: "'fields' must be an array of field definitions.",
       })
       .optional(),
+    tabs: z
+      .array(TabSchema, {
+        message: "'tabs' must be an array of tab definitions.",
+      })
+      .optional(),
     list: ListSchema.optional(),
     commit: z
       .object(
@@ -733,7 +762,23 @@ const ContentLeafSchema = z
       })
       .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, ctx) => {
+    if (!Array.isArray(data.tabs) || data.tabs.length === 0) return;
+    if (!Array.isArray(data.fields)) return;
+    const declaredTabNames = new Set(
+      data.tabs.map((tab: { name: string }) => tab.name),
+    );
+    data.fields.forEach((field: any, index: number) => {
+      if (field?.tab != null && !declaredTabNames.has(field.tab)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `'tab' value "${field.tab}" does not match any declared tab in 'tabs'.`,
+          path: ["fields", index, "tab"],
+        });
+      }
+    });
+  });
 
 const ContentGroupSchema: z.ZodType<any> = z.lazy(() =>
   z
