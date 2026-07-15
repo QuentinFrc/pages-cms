@@ -26,7 +26,7 @@ function RepoHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center border-b bg-background px-4 md:px-6">
-      <SidebarTrigger className="mr-2 md:hidden" />
+      <SidebarTrigger className="mr-2" />
       <div className="min-w-0 flex-1">{hasHeaderContent ? header : null}</div>
       <div className="ml-2 flex shrink-0 items-center">
         <DeploymentStatusBadge />
@@ -35,7 +35,13 @@ function RepoHeader() {
   );
 }
 
-export function RepoLayout({ children }: { children: React.ReactNode }) {
+export function RepoLayout({
+  children,
+  defaultSidebarOpen,
+}: {
+  children: React.ReactNode;
+  defaultSidebarOpen?: boolean;
+}) {
   const { config } = useConfig();
   const { owner, repo } = useRepo();
 
@@ -46,10 +52,10 @@ export function RepoLayout({ children }: { children: React.ReactNode }) {
   }, [config, owner, repo]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={defaultSidebarOpen ?? true}>
       <RepoHeaderProvider>
         <RepoSidebar />
-        <SidebarInset className="min-h-screen">
+        <SidebarInset className="overflow-hidden">
           <RepoHeader />
           <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
         </SidebarInset>

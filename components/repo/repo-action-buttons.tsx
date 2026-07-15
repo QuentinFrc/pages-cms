@@ -456,6 +456,7 @@ export function RepoActionButtons({
                 disabled={isBusy}
                 isActive={isBusy}
                 className="pr-8"
+                tooltip={action.label}
               >
                 {getPrimaryIcon(isBusy)}
                 <span>{action.label}</span>

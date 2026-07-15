@@ -20,6 +20,8 @@ import { getRootActions } from "@/lib/actions";
 import { getVisits } from "@/lib/tracker";
 import { RepoActionButtons } from "@/components/repo/repo-action-buttons";
 import { RepoBranches } from "@/components/repo/repo-branches";
+import { DynamicIcon } from "lucide-react/dynamic";
+import { isIconName } from "@/fields/custom/icon/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@/components/user";
 import { AdminButton } from "@/components/admin-button";
@@ -66,6 +68,7 @@ import {
   Database,
   FileStack,
   FileText,
+  Folder,
   FolderOpen,
   ListVideo,
   LogOut,
@@ -86,6 +89,7 @@ type NavigationNode = {
   type: "group" | "file" | "collection" | "media";
   name: string;
   label?: string;
+  icon?: string;
   items?: NavigationNode[];
 };
 
@@ -312,6 +316,7 @@ export function RepoSidebar() {
       type: item.type,
       name: item.name,
       label: item.label || item.name,
+      icon: item.icon,
     }));
   }, [config]);
 
@@ -325,6 +330,7 @@ export function RepoSidebar() {
       type: "media",
       name: item.name || "default",
       label: item.label || item.name || "Media",
+      icon: item.icon,
     }));
   }, [config]);
 
@@ -389,6 +395,9 @@ export function RepoSidebar() {
   );
 
   const getNodeIcon = (node: NavigationNode) => {
+    if (isIconName(node.icon)) {
+      return <DynamicIcon name={node.icon} className="size-4" />;
+    }
     if (node.type === "collection") return <FileStack className="size-4" />;
     if (node.type === "media") return <FolderOpen className="size-4" />;
     return <FileText className="size-4" />;
@@ -470,6 +479,7 @@ export function RepoSidebar() {
     if (node.type === "group") {
       const isActive = hasActiveDescendant(node);
       const isOpen = expandedGroups[key] ?? isActive;
+      const label = node.label || node.name;
       if (nested) {
         return (
             <SidebarMenuSubItem key={key}>
@@ -478,7 +488,7 @@ export function RepoSidebar() {
               >
                 <button type="button" onClick={() => toggleGroup(key)}>
                   <ChevronRight className={cn("size-4 transition-transform", isOpen && "rotate-90")} />
-                  <span>{node.label || node.name}</span>
+                  <span>{label}</span>
               </button>
             </SidebarMenuSubButton>
             {isOpen && node.items && node.items.length > 0 && (
@@ -490,14 +500,22 @@ export function RepoSidebar() {
         );
       }
 
+      const groupIcon = isIconName(node.icon)
+        ? <DynamicIcon name={node.icon} className="size-4" />
+        : isOpen
+          ? <FolderOpen className="size-4" />
+          : <Folder className="size-4" />;
+
       return (
         <SidebarMenuItem key={key}>
           <SidebarMenuButton
             asChild
+            tooltip={label}
           >
             <button type="button" onClick={() => toggleGroup(key)}>
-              <ChevronRight className={cn("size-4 transition-transform", isOpen && "rotate-90")} />
-              <span>{node.label || node.name}</span>
+              {groupIcon}
+              <span>{label}</span>
+              <ChevronRight className={cn("ml-auto size-4 transition-transform", isOpen && "rotate-90")} />
             </button>
           </SidebarMenuButton>
           {isOpen && node.items && node.items.length > 0 && (
@@ -511,13 +529,14 @@ export function RepoSidebar() {
 
     const href = getNodeHref(node);
     const isActive = pathname === href || pathname.startsWith(`${href}/`);
+    const label = node.label || node.name;
     if (nested) {
       return (
         <SidebarMenuSubItem key={key}>
           <SidebarMenuSubButton asChild isActive={isActive}>
             <Link href={href} onClick={handleNavigation}>
               {getNodeIcon(node)}
-              <span>{node.label || node.name}</span>
+              <span>{label}</span>
             </Link>
           </SidebarMenuSubButton>
         </SidebarMenuSubItem>
@@ -526,10 +545,10 @@ export function RepoSidebar() {
 
     return (
       <SidebarMenuItem key={key}>
-        <SidebarMenuButton asChild isActive={isActive}>
+        <SidebarMenuButton asChild isActive={isActive} tooltip={label}>
           <Link href={href} onClick={handleNavigation}>
             {getNodeIcon(node)}
-            <span>{node.label || node.name}</span>
+            <span>{label}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -564,7 +583,7 @@ export function RepoSidebar() {
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <SidebarMenuItem key={item.key}>
-                  <SidebarMenuButton asChild isActive={isActive}>
+                  <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
                     <Link href={item.href} onClick={handleNavigation}>
                       {item.icon}
                       <span>{item.label}</span>
@@ -603,7 +622,7 @@ export function RepoSidebar() {
   ].filter(Boolean);
 
   return (
-    <Sidebar collapsible="offcanvas">
+    <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -616,14 +635,18 @@ export function RepoSidebar() {
           <Fragment key={index}>{group}</Fragment>
         ))}
       </SidebarContent>
-      <SidebarFooter className="border-t">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <User align="start" />
-            <AdminButton />
-          </div>
-          <About />
-        </div>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <User align="start" variant="sidebar" />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <AdminButton variant="sidebar" />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <About variant="sidebar" />
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
