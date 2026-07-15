@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { ArrowUpRight, Settings, LogOut } from "lucide-react";
 
@@ -24,38 +25,52 @@ export function User({
   className,
   onClick,
   align = "end",
+  variant = "default",
 }: {
   className?: string;
   onClick?: () => void;
   align?: "start" | "center" | "end";
+  variant?: "default" | "sidebar";
 }) {
   const { user } = useUser();
   const { theme, setTheme } = useTheme();
 
   if (!user) return null;
 
+  const displayName = user.name || user.githubUsername || user.email;
+  const avatar = (
+    <Avatar className="size-6">
+      <AvatarImage
+        src={
+          user?.githubUsername
+            ? `https://github.com/${user.githubUsername}.png`
+            : `https://unavatar.io/${user?.email}?fallback=false`
+        }
+        alt={user?.name || user.email}
+      />
+      <AvatarFallback>
+        {getInitialsFromName(user.name ?? undefined)}
+      </AvatarFallback>
+    </Avatar>
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className={cn(className, "rounded-full")}
-        >
-          <Avatar className="size-6">
-            <AvatarImage
-              src={
-                user?.githubUsername
-                  ? `https://github.com/${user.githubUsername}.png`
-                  : `https://unavatar.io/${user?.email}?fallback=false`
-              }
-              alt={user?.name || user.email}
-            />
-            <AvatarFallback>
-              {getInitialsFromName(user.name ?? undefined)}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
+        {variant === "sidebar" ? (
+          <SidebarMenuButton className={className}>
+            {avatar}
+            <span className="truncate">{displayName}</span>
+          </SidebarMenuButton>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className={cn(className, "rounded-full")}
+          >
+            {avatar}
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent forceMount align={align} className="max-w-[12.5rem]">
         <DropdownMenuLabel>

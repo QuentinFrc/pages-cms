@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getConfig } from "@/lib/config-store";
 import { ConfigProvider } from "@/contexts/config-context";
 import { RepoLayout } from "@/components/repo/repo-layout";
@@ -19,6 +19,9 @@ export default async function Layout({
 }) {
   const { owner, repo, branch } = await params;
   const requestHeaders = await headers();
+  const cookieStore = await cookies();
+  const defaultSidebarOpen =
+    cookieStore.get("sidebar_state")?.value !== "false";
   const session = await getServerSession();
   const user = session?.user;
   const returnTo = requestHeaders.get("x-return-to");
@@ -103,7 +106,9 @@ export default async function Layout({
 
   return (
     <ConfigProvider value={config}>
-      <RepoLayout>{errorMessage ? errorMessage : children}</RepoLayout>
+      <RepoLayout defaultSidebarOpen={defaultSidebarOpen}>
+        {errorMessage ? errorMessage : children}
+      </RepoLayout>
     </ConfigProvider>
   );
 }
