@@ -15,7 +15,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 
-import { isHexColor, toPickerHex } from "./color";
+import { isCssColor, toPickerHex } from "./color";
 
 const CHECKERBOARD_BG =
   "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)";
@@ -27,7 +27,7 @@ const EditComponent = forwardRef<HTMLInputElement, any>(
       (field?.options?.placeholder as string | undefined) || "#000000";
 
     const swatchColor = useMemo(
-      () => (isHexColor(value) ? value : "transparent"),
+      () => (isCssColor(value) ? value : "transparent"),
       [value],
     );
 

@@ -1,27 +1,24 @@
-const HEX_COLOR_REGEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+import { parse, formatHex } from "culori";
 
-const isHexColor = (value: unknown): value is string =>
-  typeof value === "string" && HEX_COLOR_REGEX.test(value);
-
-const normalizeHex = (value: string): string => {
-  const trimmed = value.trim().toLowerCase();
-  return trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
-};
-
-const expandShortHex = (value: string): string => {
-  const normalized = normalizeHex(value);
-  if (normalized.length === 4 || normalized.length === 5) {
-    const chars = normalized.slice(1).split("");
-    return `#${chars.map((c) => c + c).join("")}`;
+const isCssColor = (value: unknown): value is string => {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return false;
+  try {
+    return parse(trimmed) !== undefined;
+  } catch {
+    return false;
   }
-  return normalized;
 };
 
 const toPickerHex = (value: string | null | undefined): string => {
-  if (typeof value !== "string" || value.length === 0) return "#000000";
-  if (!isHexColor(value)) return "#000000";
-  const expanded = expandShortHex(value);
-  return expanded.slice(0, 7);
+  if (typeof value !== "string" || value.trim().length === 0) return "#000000";
+  try {
+    const hex = formatHex(value.trim());
+    return hex ?? "#000000";
+  } catch {
+    return "#000000";
+  }
 };
 
-export { HEX_COLOR_REGEX, isHexColor, normalizeHex, expandShortHex, toPickerHex };
+export { isCssColor, toPickerHex };
