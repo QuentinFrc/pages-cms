@@ -20,6 +20,8 @@ import { getRootActions } from "@/lib/actions";
 import { getVisits } from "@/lib/tracker";
 import { RepoActionButtons } from "@/components/repo/repo-action-buttons";
 import { RepoBranches } from "@/components/repo/repo-branches";
+import { DynamicIcon } from "lucide-react/dynamic";
+import { isIconName } from "@/fields/custom/icon/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@/components/user";
 import { AdminButton } from "@/components/admin-button";
@@ -48,7 +50,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,7 @@ type NavigationNode = {
   type: "group" | "file" | "collection" | "media";
   name: string;
   label?: string;
+  icon?: string;
   items?: NavigationNode[];
 };
 
@@ -314,6 +316,7 @@ export function RepoSidebar() {
       type: item.type,
       name: item.name,
       label: item.label || item.name,
+      icon: item.icon,
     }));
   }, [config]);
 
@@ -327,6 +330,7 @@ export function RepoSidebar() {
       type: "media",
       name: item.name || "default",
       label: item.label || item.name || "Media",
+      icon: item.icon,
     }));
   }, [config]);
 
@@ -391,6 +395,9 @@ export function RepoSidebar() {
   );
 
   const getNodeIcon = (node: NavigationNode) => {
+    if (isIconName(node.icon)) {
+      return <DynamicIcon name={node.icon} className="size-4" />;
+    }
     if (node.type === "collection") return <FileStack className="size-4" />;
     if (node.type === "media") return <FolderOpen className="size-4" />;
     return <FileText className="size-4" />;
@@ -493,6 +500,12 @@ export function RepoSidebar() {
         );
       }
 
+      const groupIcon = isIconName(node.icon)
+        ? <DynamicIcon name={node.icon} className="size-4" />
+        : isOpen
+          ? <FolderOpen className="size-4" />
+          : <Folder className="size-4" />;
+
       return (
         <SidebarMenuItem key={key}>
           <SidebarMenuButton
@@ -500,7 +513,7 @@ export function RepoSidebar() {
             tooltip={label}
           >
             <button type="button" onClick={() => toggleGroup(key)}>
-              {isOpen ? <FolderOpen className="size-4" /> : <Folder className="size-4" />}
+              {groupIcon}
               <span>{label}</span>
               <ChevronRight className={cn("ml-auto size-4 transition-transform", isOpen && "rotate-90")} />
             </button>
@@ -635,7 +648,6 @@ export function RepoSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }
