@@ -5,7 +5,7 @@
 import { spawn } from "node:child_process";
 import { readEnvValue } from "./env.mjs";
 
-const env = { ...process.env };
+const env = { ...process.env, DEV_REDIRECT_TO_BASE_URL: true };
 if (!env.PORT) env.PORT = readEnvValue("PORT") || "3000";
 
 const procs = [];
