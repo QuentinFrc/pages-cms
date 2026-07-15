@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRepo } from "@/contexts/repo-context";
 import { useConfig } from "@/contexts/config-context";
@@ -8,11 +8,26 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { requireApiSuccess } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-import { Check, Loader } from "lucide-react";
+import { Check, Loader, ExternalLink } from "lucide-react";
+import { useDeployments } from "@/hooks/use-deployments";
 
 export function RepoBranches() {
   const { owner, repo, branches, setBranches } = useRepo();
   const { config } = useConfig();
+  const { deployments } = useDeployments({
+    owner,
+    repo,
+    branch: config?.branch,
+    enabled: Boolean(config?.branch),
+  });
+
+  const currentBranchUrl = useMemo(() => {
+    if (!deployments || deployments.length === 0) return null;
+    const ready = deployments.find(
+      (deployment) => deployment.status === "ready" && deployment.url,
+    );
+    return ready?.url ?? null;
+  }, [deployments]);
 
   const [search, setSearch] = useState("");
   const [filteredBranches, setFilteredBranches] = useState<string[] | undefined>([]);
@@ -97,7 +112,21 @@ export function RepoBranches() {
               href={`/${owner}/${repo}/${encodeURIComponent(branch)}`}
             >
               <span className="truncate">{branch}</span>
-              {branch === config?.branch && <Check className="h-4 w-4 ml-auto opacity-50" />}
+              {branch === config?.branch && currentBranchUrl && (
+                <a
+                  href={currentBranchUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) => event.stopPropagation()}
+                  className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                  title={currentBranchUrl}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              {branch === config?.branch && !currentBranchUrl && (
+                <Check className="h-4 w-4 ml-auto opacity-50" />
+              )}
             </Link>
           ))
           : <div className="text-muted-foreground py-6 text-center">No branches found.</div>

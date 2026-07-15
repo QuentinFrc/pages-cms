@@ -14,4 +14,10 @@ export type Field = {
   fields?: Field[];
   blocks?: Field[];
   blockKey?: string;
+  tab?: string;
+};
+
+export type Tab = {
+  name: string;
+  label?: string;
 };
